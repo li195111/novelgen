@@ -1,4 +1,5 @@
 import { DraggableStoryItem } from "@/components/app-sidebar-draggable";
+import { DeleteStoryCollectionAlertDialog } from "@/components/delete-story-collection-alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -16,29 +17,23 @@ import {
 } from "@/components/ui/sidebar";
 import { useLocalStorage } from "@/hooks/use-storage";
 import { Story } from "@/models/story";
+import { RootStoryState, StoryCollection } from "@/models/story-collection";
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { ChevronDown, MoreHorizontal, PlusCircleIcon, Trash2Icon } from "lucide-react";
+import { ChevronDown, MoreHorizontal, PenLineIcon, PlusCircleIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
 import { Link } from 'react-router-dom';
-
-interface StoryCollection {
-    id: string;
-    name: string;
-    stories: Story[];
-}
-
-interface RootStoryState {
-    unorganizedStories: Story[];
-    collections: StoryCollection[];
-}
+import { v4 } from 'uuid';
 
 export function AppSidebar() {
     const [storyState, setStoryState] = useLocalStorage<RootStoryState>('story-state', {
         unorganizedStories: [],
         collections: []
     });
+    const [selectedCollection, setSelectedCollection] = useState<StoryCollection | null>(null);
+    const [deleteCollectionAlertOpen, setDeleteCollectionAlertOpen] = useState(false);
 
-    const generateUniqueId = () => `col-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const generateUniqueId = () => `col-${v4().replace(/-/g, '')}`;
 
     const handleAddCollection = () => {
         const newCollection: StoryCollection = {
@@ -53,9 +48,14 @@ export function AppSidebar() {
         }));
     };
 
-    const handleDeleteCollection = (collectionId: string) => {
+    const handleDeleteCollection = (collection: StoryCollection) => {
+        setSelectedCollection(collection);
+        setDeleteCollectionAlertOpen(true);
+    };
+
+    const onDeleteCollection = () => {
         setStoryState(prev => {
-            const collection = prev.collections.find(c => c.id === collectionId);
+            const collection = prev.collections.find(c => c.id === selectedCollection?.id);
             if (!collection) return prev;
 
             return {
@@ -63,16 +63,13 @@ export function AppSidebar() {
                 // 將被刪除集合中的故事移至未分類區域
                 unorganizedStories: [...prev.unorganizedStories, ...collection.stories],
                 // 從集合列表中移除該集合
-                collections: prev.collections.filter(c => c.id !== collectionId)
+                collections: prev.collections.filter(c => c.id !== selectedCollection?.id)
             };
         });
-    };
+    }
 
     const handleDragEnd = (result: DropResult): void => {
         const { source, destination } = result;
-        console.debug('source', source);
-        console.debug('destination', destination);
-        console.debug('result', result);
 
         if (!destination) return;
 
@@ -115,6 +112,12 @@ export function AppSidebar() {
 
     return (
         <Sidebar>
+            <DeleteStoryCollectionAlertDialog
+                isOpen={deleteCollectionAlertOpen}
+                onClose={() => setDeleteCollectionAlertOpen(!deleteCollectionAlertOpen)}
+                selectedCollection={selectedCollection}
+                onDelete={onDeleteCollection}
+            />
             <SidebarHeader className="flex items-center justify-center h-16">
                 <Label className="font-black text-xl">Novelgen</Label>
             </SidebarHeader>
@@ -148,27 +151,39 @@ export function AppSidebar() {
                                     <Collapsible defaultOpen
                                         {...provided.droppableProps}
                                         ref={provided.innerRef}
-                                        className="list-none group/collapsible hover:bg-slate-300"
+                                        className="list-none rounded-sm group/collapsible hover:bg-slate-200"
                                     >
                                         <div className="flex items-center justify-between w-full">
-                                            <CollapsibleTrigger asChild className="hover:bg-slate-500">
-                                                <SidebarMenuButton className="hover:bg-slate-500">
+                                            <CollapsibleTrigger asChild
+                                                className={[
+                                                    "group-data-[state=open]/collapsible:hover:bg-slate-200",
+                                                    "group-data-[state=closed]/collapsible:hover:bg-slate-200",
+                                                ].join(' ')}>
+                                                <SidebarMenuButton className="text-xs">
                                                     {collection.name}
-                                                    <ChevronDown className="ml-2 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                                                    <ChevronDown className="transition-transform group-data-[state=open]/collapsible:rotate-180" />
                                                 </SidebarMenuButton>
                                             </CollapsibleTrigger>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Button variant="ghost" size="icon" className="mr-1 h-5 w-6 rounded-sm">
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent side="right" align="end">
+                                                <DropdownMenuContent side="right" align="start"
+                                                    className="w-28 bg-white py-0.5 rounded-md shadow">
                                                     <DropdownMenuItem
-                                                        className="cursor-pointer hover:text-destructive focus:text-destructive"
-                                                        onClick={() => handleDeleteCollection(collection.id)}
+                                                        className="flex h-8 justify-start m-1 rounded cursor-pointer hover:bg-slate-300">
+                                                        <Label className="flex items-center px-1 cursor-pointer">
+                                                            <PenLineIcon className="mr-2 h-4 w-4" />
+                                                            重新命名
+                                                        </Label>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="flex h-8 justify-start m-1 rounded cursor-pointer hover:bg-slate-300 hover:text-destructive"
+                                                        onClick={() => handleDeleteCollection(collection)}
                                                     >
-                                                        <Label className="flex items-center cursor-pointer hover:text-destructive">
+                                                        <Label className="flex items-center px-1 cursor-pointer hover:text-destructive">
                                                             <Trash2Icon className="mr-2 h-4 w-4" />
                                                             刪除
                                                         </Label>
@@ -195,7 +210,7 @@ export function AppSidebar() {
                         <Droppable droppableId="unorganized">
                             {(provided) => (
                                 <SidebarGroupContent
-                                    className="py-2 hover:bg-slate-300"
+                                    className="py-1 rounded-sm hover:bg-slate-200"
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
                                 >

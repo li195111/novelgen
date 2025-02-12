@@ -43,7 +43,7 @@ export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index }
                         </SidebarMenuButton>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <SidebarMenuAction>
+                                <SidebarMenuAction className="rounded-sm">
                                     <MoreHorizontal />
                                 </SidebarMenuAction>
                             </DropdownMenuTrigger>
