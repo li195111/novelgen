@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ACTIONS_LIST, BODY_PARTS } from "@/constant";
+import { ACTIONS_LIST, BODY_PARTS, DARK_BODY_PARTS } from "@/constant";
 import { useLocalStorage } from "@/hooks/use-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
@@ -31,7 +31,7 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const [storyList, setStoryList] = useLocalStorage<Story[]>('stories', []);
     const [selectedStory, setSelectedStory] = useState<Story | null>(storyList.find((story) => story.uid === storyUid) ?? null);
 
-    const [bodyPartsList, setBodyPartsList] = useState<string[]>(BODY_PARTS);
+    const [bodyPartsList, setBodyPartsList] = useState<string[]>(DARK_BODY_PARTS);
     const [actionsList, setActionsList] = useState<string[]>(ACTIONS_LIST);
     const [phrasesList, setPhrasesList] = useState<string[]>([]);
 

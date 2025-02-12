@@ -36,7 +36,7 @@ export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index }
                         >
                             <GripVertical className="w-4 h-4" />
                         </div>
-                        <SidebarMenuButton asChild className="flex hover:bg-slate-300">
+                        <SidebarMenuButton asChild className="flex hover:bg-slate-300 focus:bg-slate-300">
                             <Link to={`/story/${story.uid}`}>
                                 {story.title}
                             </Link>

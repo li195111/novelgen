@@ -210,7 +210,7 @@ export function AppSidebar() {
                         <Droppable droppableId="unorganized">
                             {(provided) => (
                                 <SidebarGroupContent
-                                    className="py-1 rounded-sm hover:bg-slate-200"
+                                    className="py-1 rounded-sm hover:bg-slate-200 focus:bg-slate-200"
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
                                 >
