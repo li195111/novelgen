@@ -1,6 +1,5 @@
 "use client";
 
-import "@/App.css";
 import AddCharacterDialog from "@/components/add-character-dialog";
 import AddSceneDialog from "@/components/add-scene-dialog";
 import { CharacterSchema } from "@/components/character-form";
