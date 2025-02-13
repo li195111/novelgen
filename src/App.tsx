@@ -19,9 +19,7 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </div>
-      <div className="fixed right-10 bottom-4 flex justify-center p-0 m-0 w-[48rem]">
-        <ChatCard />
-      </div>
+      <ChatCard />
     </main>
   );
 }
