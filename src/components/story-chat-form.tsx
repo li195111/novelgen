@@ -1,14 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SendIcon } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 export const StoryChatSchema = z.object({
-    chatMessage: z.string()
+    chatMessage: z.string().nonempty("請輸入劇情內容"),
 });
 export type StoryType = z.infer<typeof StoryChatSchema>;
 
@@ -17,6 +18,7 @@ interface StoryChatFormProps {
 }
 
 export const StoryChatForm: React.FC<StoryChatFormProps> = ({ handleSubmit }) => {
+    const chatMessageRef = useRef<HTMLTextAreaElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
 
     const storyForm = useForm<StoryType>({
@@ -35,29 +37,34 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ handleSubmit }) =>
         }
     }
 
+    useEffect(() => {
+        dynamicHeight(chatMessageRef);
+    }, [storyForm.watch('chatMessage')]);
+
     return (
         <Form {...storyForm}>
             <form onSubmit={storyForm.handleSubmit((v) => {
                 handleSubmit(v);
                 storyForm.reset();
-            })} className="flex w-full items-center">
+            })} className="flex flex-col w-full space-y-1">
                 <FormField
                     control={storyForm.control}
                     name="chatMessage"
                     render={({ field }) => (
-                        <FormItem className="flex w-full pr-2">
+                        <FormItem className="flex w-full">
                             <FormControl>
                                 <Textarea
-                                    className="p-0 px-2 pt-3 min-h-10 border-0 shadow-none resize-none focus:outline-none focus-visible:ring-0"
+                                    className="p-0 px-2 min-h-4 h-4 border-0 shadow-none resize-none focus:outline-none focus-visible:ring-0"
                                     placeholder="輸入劇情..." {...field}
                                     onKeyDown={handleKeyDown}
+                                    ref={chatMessageRef}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="min-w-max" />
                         </FormItem>
                     )}
                 />
-                <div className="flex mx-2">
+                <div className="flex w-full justify-end">
                     <Button type="submit" className="w-9 rounded-full" ref={submitRef}>
                         <SendIcon />
                     </Button>

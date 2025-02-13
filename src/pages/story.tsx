@@ -85,7 +85,6 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
                     </Accordion>
                 </div>
             </Card>
-            <ChatCard />
         </div>
     )
 }

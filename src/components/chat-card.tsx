@@ -1,8 +1,7 @@
 import "@/App.css";
-import { ChatMessageBlock } from "@/components/chat-message";
+import { ChatMessageBlock, ResponseBlock } from "@/components/chat-message";
 import { StoryChatForm, StoryChatSchema } from "@/components/story-chat-form";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { SYSTEM_PROMPT } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, IChatMessage, systemMessage, userMessage } from "@/models/chat";
@@ -20,7 +19,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     ]);
     const [currentResponse, setCurrentResponse] = useState<string>('');
     const [isStreaming, setIsStreaming] = useState(false);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const historyRef = useRef<HTMLDivElement>(null);
 
     const handleChatStory = async (values: z.infer<typeof StoryChatSchema>) => {
         try {
@@ -67,7 +66,6 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                         const parsedLine = JSON.parse(line);
                         if (parsedLine.message?.content) {
                             setCurrentResponse(prev => prev + parsedLine.message.content);
-                            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
                         }
                     } catch (e) {
                         console.error('Error parsing JSON line:', e);
@@ -88,11 +86,8 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
 
     // 動態調整 textarea 高度
     useEffect(() => {
-        if (textareaRef.current) {
-            // 重置高度避免縮小時的問題
-            textareaRef.current.style.height = 'auto';
-            // 設置新的高度
-            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        if (historyRef.current) {
+            historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
         }
     }, [currentResponse]);
 
@@ -104,33 +99,39 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         }
     }, [isStreaming]);
 
+    useEffect(() => {
+        if (messages[messages.length - 1]?.role === 'assistant' && historyRef.current) {
+            historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
+        }
+    }, [messages])
+
     return (
-        <Card>
-            {/* 聊天訊息歷史 */}
-            <div className="flex flex-col space-y-6 p-6">
-                {messages.map((message, index) => {
-                    if (message.role !== 'system') {
-                        if ((index !== messages.length - 1) || (index === messages.length - 1 && message.role === 'user')) {
-                            return <ChatMessageBlock message={message} key={`${message.uid}-${message.timestamp}`} />
+        <Card className="w-[40rem] h-full bg-slate-100">
+            <div className="flex flex-col w-full h-full max-h-[30rem] overflow-y-auto" ref={historyRef}>
+                {/* 聊天訊息歷史 */}
+                <div className="flex flex-col space-y-6 p-4">
+                    {messages.map((message, index) => {
+                        if (message.role !== 'system') {
+                            if ((index !== messages.length - 1) || (index === messages.length - 1 && message.role === 'user')) {
+                                return <ChatMessageBlock message={message} key={`${message.uid}-${message.timestamp}`} />
+                            }
                         }
                     }
-                }
+                    )}
+                </div>
+
+                {/* 當前串流回應 */}
+                {isStreaming && currentResponse && (
+                    <div className="flex w-full justify-start px-4">
+                        <ResponseBlock message={currentResponse} />
+                    </div>
+                )}
+                {!isStreaming && currentResponse && (
+                    <div className="flex p-4">
+                        <ChatMessageBlock message={messages[messages.length - 1]} />
+                    </div>
                 )}
             </div>
-
-            {/* 當前串流回應 */}
-            {currentResponse && (
-                <div className="flex w-full justify-start px-4">
-                    <div className="flex w-full">
-                        <Textarea
-                            ref={textareaRef}
-                            className="border-0 shadow-none resize-none focus-visible:ring-0 overflow-hidden bg-transparent"
-                            value={currentResponse}
-                            readOnly
-                        />
-                    </div>
-                </div>
-            )}
             {/* 輸入表單 */}
             <Separator orientation="horizontal" className="border" />
             <div className="flex w-full p-2">

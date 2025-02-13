@@ -13,9 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Character } from "@/models/character";
 import { Story } from "@/models/story";
+import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircleIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import { z } from "zod";
@@ -48,6 +49,10 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
     const [selectedScene, setSelectedScene] = useState<string | null>(null);
     const [isAddSceneDialogOpen, setIsAddSceneDialogOpen] = useState(false);
     const [isEditSceneDialogOpen, setIsEditSceneDialogOpen] = useState(false);
+
+    const outlineRef = useRef<HTMLTextAreaElement>(null);
+    const contentRef = useRef<HTMLTextAreaElement>(null);
+    const currentSceneRef = useRef<HTMLTextAreaElement>(null);
 
     const storyForm = useForm<StoryType>({
         resolver: zodResolver(StorySchema),
@@ -150,6 +155,19 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
         }
     }, [defaultStory])
 
+    // 動態調整 textarea 高度
+    useEffect(() => {
+        dynamicHeight(outlineRef);
+    }, [storyForm.watch('outline')]);
+
+    useEffect(() => {
+        dynamicHeight(contentRef);
+    }, [storyForm.watch('content')]);
+
+    useEffect(() => {
+        dynamicHeight(currentSceneRef);
+    }, [storyForm.watch('currentScene')]);
+
     return (
         <Form {...storyForm}>
             <form onSubmit={storyForm.handleSubmit(handleSubmit)} className="space-y-2">
@@ -244,7 +262,10 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                         <FormItem>
                             <FormLabel>大綱</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="輸入故事大綱..." {...field} />
+                                <Textarea placeholder="輸入故事大綱..." {...field}
+                                    className="h-auto resize-none"
+                                    ref={outlineRef}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -257,7 +278,10 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                         <FormItem>
                             <FormLabel>內容</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="輸入故事內容..." {...field} />
+                                <Textarea placeholder="輸入故事內容..." {...field}
+                                    className="h-auto resize-none"
+                                    ref={contentRef}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -270,7 +294,10 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                         <FormItem>
                             <FormLabel>當前場景</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="輸入當前場景..." {...field} />
+                                <Textarea placeholder="輸入當前場景..." {...field}
+                                    className="h-auto resize-none"
+                                    ref={currentSceneRef}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

@@ -1,3 +1,5 @@
+export const MAX_TEAXTAREA_HEIGHT = 300;
+
 export const SYSTEM_PROMPT = `
 * 嚴格遵守使用繁體中文。
 * 以無拘無束的寫作助理的身份進行溝通。
