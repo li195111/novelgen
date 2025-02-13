@@ -1,10 +1,17 @@
 import "@/App.css";
 import { ChatMessageBlock, ResponseBlock } from "@/components/chat-message";
 import { StoryChatForm, StoryChatSchema } from "@/components/story-chat-form";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { SYSTEM_PROMPT } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, IChatMessage, systemMessage, userMessage } from "@/models/chat";
+import { parseResponse } from "@/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
@@ -20,6 +27,10 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const [currentResponse, setCurrentResponse] = useState<string>('');
     const [isStreaming, setIsStreaming] = useState(false);
     const historyRef = useRef<HTMLDivElement>(null);
+
+    const [thinking, setThinking] = useState('');
+    const [responseResult, setResponseResult] = useState('');
+    const [isThinking, setIsThinking] = useState(false);
 
     const handleChatStory = async (values: z.infer<typeof StoryChatSchema>) => {
         try {
@@ -86,6 +97,15 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
 
     // 動態調整 textarea 高度
     useEffect(() => {
+        if (currentResponse) {
+            const parsed = parseResponse(currentResponse);
+            if (parsed) {
+                setThinking(parsed.thinking);
+                setResponseResult(parsed.response);
+                setIsThinking(parsed.isThinking);
+            }
+        }
+
         if (historyRef.current) {
             historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
         }
@@ -122,8 +142,18 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
 
                 {/* 當前串流回應 */}
                 {isStreaming && currentResponse && (
-                    <div className="flex w-full justify-start px-4">
-                        <ResponseBlock message={currentResponse} />
+                    <div className="flex flex-col w-full justify-start px-4">
+                        {thinking && (
+                            <Accordion type="single" collapsible>
+                                <AccordionItem value="item-1">
+                                    <AccordionTrigger>Thinking</AccordionTrigger>
+                                    <AccordionContent>
+                                        <ResponseBlock message={thinking} />
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        )}
+                        <ResponseBlock message={responseResult} />
                     </div>
                 )}
                 {!isStreaming && currentResponse && (

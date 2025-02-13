@@ -1,5 +1,4 @@
 import "@/App.css";
-import { ChatCard } from "@/components/chat-card";
 import StoryForm, { StorySchema } from "@/components/story-form";
 import {
     Accordion,
