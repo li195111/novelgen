@@ -1,12 +1,13 @@
 import "@/App.css";
-import StoryChatForm, { StoryChatSchema } from "@/components/story-chat-form";
+import { ChatMessageBlock } from "@/components/chat-message";
+import { StoryChatForm, StoryChatSchema } from "@/components/story-chat-form";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { SYSTEM_PROMPT } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
-import { ChatMessage } from "@/models/chat";
+import { assistantMessage, IChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { Separator } from "@radix-ui/react-separator";
 import { useEffect, useRef, useState } from "react";
-import { v4 } from "uuid";
 import { z } from "zod";
 
 interface ChatCardProps {
@@ -14,7 +15,9 @@ interface ChatCardProps {
 
 export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { toast } = useToast();
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<IChatMessage[]>([
+        systemMessage(SYSTEM_PROMPT)
+    ]);
     const [currentResponse, setCurrentResponse] = useState<string>('');
     const [isStreaming, setIsStreaming] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -25,13 +28,9 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
             setCurrentResponse('');
 
             // 儲存使用者的訊息
-            const userMessage: ChatMessage = {
-                uid: v4(),
-                role: 'user',
-                content: values.addStory,
-                timestamp: Date.now()
-            };
-            setMessages(prev => [...prev, userMessage]);
+            const userChatMessage = userMessage(values.chatMessage);
+            const newMessages = [...messages, userChatMessage];
+            setMessages(newMessages);
 
             const response = await fetch('http://localhost:11434/api/chat', {
                 method: 'POST',
@@ -40,13 +39,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                 },
                 body: JSON.stringify({
                     model: 'deepseek-r1:32b',
-                    messages: [
-                        ...messages,
-                        {
-                            role: 'user',
-                            content: values.addStory
-                        }
-                    ]
+                    messages: newMessages.map(mes => ({ role: mes.role, content: mes.content }))
                 })
             });
 
@@ -74,6 +67,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                         const parsedLine = JSON.parse(line);
                         if (parsedLine.message?.content) {
                             setCurrentResponse(prev => prev + parsedLine.message.content);
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
                         }
                     } catch (e) {
                         console.error('Error parsing JSON line:', e);
@@ -105,13 +99,8 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     useEffect(() => {
         if (!isStreaming && currentResponse && messages[messages.length - 1]?.role === 'user') {
             // AI 回應完畢, 儲存 AI 的完整回應
-            const assistantMessage: ChatMessage = {
-                uid: v4(),
-                role: 'assistant',
-                content: currentResponse,
-                timestamp: Date.now()
-            };
-            setMessages(prev => [...prev, assistantMessage]);
+            const newAssistantMessage = assistantMessage(currentResponse);
+            setMessages(prev => [...prev, newAssistantMessage]);
         }
     }, [isStreaming]);
 
@@ -120,21 +109,10 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
             {/* 聊天訊息歷史 */}
             <div className="flex flex-col space-y-6 p-6">
                 {messages.map((message, index) => {
-                    if (index !== messages.length - 1 || (index === messages.length - 1 && message.role === 'user')) {
-                        return (
-                            <div key={message.timestamp}
-                                className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                            >
-                                <div className={`text-sm min-h-4 border-0 shadow-none resize-none focus-visible:ring-0 overflow-hidden bg-transparent`}>
-                                    {message.content.split('\n').map((line, index) => (
-                                        <div key={`${message.uid}-${index}`} className="flex w-full">
-                                            <p>{line}</p>
-                                            <br />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )
+                    if (message.role !== 'system') {
+                        if ((index !== messages.length - 1) || (index === messages.length - 1 && message.role === 'user')) {
+                            return <ChatMessageBlock message={message} key={`${message.uid}-${message.timestamp}`} />
+                        }
                     }
                 }
                 )}

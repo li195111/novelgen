@@ -3,11 +3,12 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SendIcon } from "lucide-react";
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 export const StoryChatSchema = z.object({
-    addStory: z.string()
+    chatMessage: z.string()
 });
 export type StoryType = z.infer<typeof StoryChatSchema>;
 
@@ -16,13 +17,23 @@ interface StoryChatFormProps {
 }
 
 export const StoryChatForm: React.FC<StoryChatFormProps> = ({ handleSubmit }) => {
+    const submitRef = useRef<HTMLButtonElement>(null);
 
     const storyForm = useForm<StoryType>({
         resolver: zodResolver(StoryChatSchema),
         defaultValues: {
-            addStory: ""
+            chatMessage: ""
         }
     });
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // 阻止默認換行行為
+            if (submitRef.current) {
+                submitRef.current.click();
+            }
+        }
+    }
 
     return (
         <Form {...storyForm}>
@@ -32,18 +43,22 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ handleSubmit }) =>
             })} className="flex w-full items-center">
                 <FormField
                     control={storyForm.control}
-                    name="addStory"
+                    name="chatMessage"
                     render={({ field }) => (
                         <FormItem className="flex w-full pr-2">
                             <FormControl>
-                                <Textarea className="min-h-10 border-0 shadow-none resize-none focus:outline-none focus-visible:ring-0" placeholder="輸入劇情..." {...field} />
+                                <Textarea
+                                    className="p-0 px-2 pt-3 min-h-10 border-0 shadow-none resize-none focus:outline-none focus-visible:ring-0"
+                                    placeholder="輸入劇情..." {...field}
+                                    onKeyDown={handleKeyDown}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
                 <div className="flex mx-2">
-                    <Button type="submit" className="w-9 rounded-full">
+                    <Button type="submit" className="w-9 rounded-full" ref={submitRef}>
                         <SendIcon />
                     </Button>
                 </div>
@@ -52,5 +67,3 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ handleSubmit }) =>
     )
 
 }
-
-export default StoryChatForm;
