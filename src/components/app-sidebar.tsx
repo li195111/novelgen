@@ -1,4 +1,4 @@
-import { DraggableStoryItem } from "@/components/app-sidebar-draggable";
+import { DraggableStoryItem } from "@/components/app-sidebar-draggable-story-item";
 import { DeleteStoryCollectionAlertDialog } from "@/components/delete-story-collection-alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";

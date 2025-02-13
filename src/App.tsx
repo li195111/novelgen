@@ -9,11 +9,9 @@ import { Route, Routes } from 'react-router-dom';
 function App() {
 
   return (
-    <main className="flex w-full">
-      <div className="flex flex-col w-7">
-        <SidebarTrigger />
-      </div>
-      <div className="flex flex-col pl-2 pt-4 mb-[11rem] w-[44rem]">
+    <main className="relative flex w-full">
+      <SidebarTrigger />
+      <div className="flex flex-col pl-2 pr-4 pt-4 mb-[11rem] w-full">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/story" element={<StoryPage />} />
@@ -21,7 +19,7 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </div>
-      <div className="fixed bottom-0 flex justify-center pl-9 w-[45.75rem] mb-4">
+      <div className="fixed right-10 bottom-4 flex justify-center p-0 m-0 w-[48rem]">
         <ChatCard />
       </div>
     </main>
