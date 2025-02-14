@@ -27,17 +27,20 @@ export interface IChat {
   uid: string;
   title?: string;
   messages?: ChatMessage[];
+  createTimestamp?: number;
 }
 
 export class Chat {
   uid: string;
   title?: string;
   messages?: ChatMessage[];
+  createTimestamp?: number;
 
   constructor(props: IChat) {
     this.uid = props.uid;
     this.title = props.title ?? "";
     this.messages = props.messages ?? [];
+    this.createTimestamp = props.createTimestamp ?? Date.now();
   }
 }
 

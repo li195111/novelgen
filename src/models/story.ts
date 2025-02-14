@@ -1,4 +1,4 @@
-import { Character } from "./character";
+import { Character } from "@/models/character";
 
 export interface StoryProps {
   uid: string;
@@ -8,6 +8,7 @@ export interface StoryProps {
   outline?: string;
   content?: string;
   currentScene?: string;
+  createTimestamp?: number;
 }
 
 export class Story {
@@ -18,6 +19,7 @@ export class Story {
   outline: string;
   content: string;
   currentScene: string;
+  createTimestamp?: number;
 
   constructor(props: StoryProps) {
     this.uid = props.uid;
@@ -27,5 +29,6 @@ export class Story {
     this.outline = props.outline ?? "";
     this.content = props.content ?? "";
     this.currentScene = props.currentScene ?? "";
+    this.createTimestamp = props.createTimestamp ?? Date.now();
   }
 }

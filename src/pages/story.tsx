@@ -25,11 +25,13 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const { toast } = useToast();
     const { storyUid } = useParams();
     const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-    const [currentCollection, setCurrentCollection] = useState<string | null>("unorganized");
+    const [currentStoryCollectionId, setCurrentStoryCollectionId] = useState<string | null>("unorganized");
+    const [currentStoryCollection, setCurrentStoryCollection] = useState<StoryCollection | null>(null);
     const [storyState, setStoryState] = useLocalStorage<RootStoryState>('story-state', {
         unorganizedStories: [],
         collections: []
     });
+    const [currentStoryUid, setCurrentStoryUid] = useLocalStorage<string>('current-story', '');
 
 
     const [bodyPartsList, setBodyPartsList] = useState<string[]>(BODY_PARTS);
@@ -41,20 +43,15 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
         const saveStory = new Story(values);
         let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
         let storyCollectionStories = storyState.unorganizedStories;
-        if (currentCollection !== "unorganized") {
-            const collection = storyState.collections.find((col) => col.id === currentCollection);
-            if (collection) {
-                storyCollection = collection;
-                storyCollectionStories = collection.stories;
-            }
+        if ((currentStoryCollectionId !== "unorganized") && currentStoryCollection) {
+            storyCollection = currentStoryCollection;
+            storyCollectionStories = currentStoryCollection.stories;
         }
-        let otherCollections = storyState.collections.filter((col) => col.id !== currentCollection) || [];
-
-
+        let otherCollections = storyState.collections.filter((col) => col.id !== currentStoryCollectionId) || [];
         const isNewStory = !storyCollectionStories.find((story) => story.uid === saveStory.uid);
         const otherStories = storyCollectionStories.filter((story) => story.uid !== saveStory.uid);
 
-        if (currentCollection === "unorganized") {
+        if (currentStoryCollectionId === "unorganized") {
             setStoryState({
                 ...storyState,
                 unorganizedStories: [...otherStories, saveStory],
@@ -80,6 +77,12 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     }
 
     useEffect(() => {
+        if (storyUid) {
+            setCurrentStoryUid(storyUid);
+        }
+    }, [storyUid]);
+
+    useEffect(() => {
         let story = null;
         let collectionId = "unorganized";
         const unorganizedStory = storyState.unorganizedStories.find((story) => story.uid === storyUid);
@@ -95,8 +98,22 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
             }
         })
 
-        setSelectedStory(story);
-        setCurrentCollection(collectionId);
+        if (story) {
+            setSelectedStory(story);
+            setCurrentStoryCollectionId(collectionId);
+
+            let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
+            let storyCollectionStories = storyState.unorganizedStories;
+            if (collectionId !== "unorganized") {
+                const collection = storyState.collections.find((col) => col.id === collectionId);
+                if (collection) {
+                    storyCollection = collection;
+                    storyCollectionStories = collection.stories;
+                }
+            }
+            setCurrentStoryCollection(storyCollection);
+
+        }
     }, [storyUid, storyState]);
 
     return (

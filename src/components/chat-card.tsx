@@ -1,4 +1,4 @@
-import { handleOllamaChat } from "@/api/chat";
+import { handleChat } from "@/api/chat";
 import "@/App.css";
 import { ChatMessageBlock, ResponseBlock } from "@/components/chat-message";
 import { StoryChatForm, StoryChatSchema } from "@/components/story-chat-form";
@@ -12,6 +12,8 @@ import { useLocalStorage } from "@/hooks/use-storage";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { ChatCollection, RootChatState } from "@/models/chat-collection";
+import { Story } from "@/models/story";
+import { RootStoryState, StoryCollection } from "@/models/story-collection";
 import { parseResponse } from "@/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
@@ -28,8 +30,17 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { toast } = useToast();
     const { chatUid } = useParams();
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-    const [currentCollection, setCurrentCollection] = useState<string | null>("unorganized");
+    const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
     const [chatState, setChatState] = useLocalStorage<RootChatState>('chat-state', {
+        unorganizedStories: [],
+        collections: []
+    });
+
+    const [currentStoryUid, setCurrentStoryUid] = useLocalStorage<string>('current-story', '');
+    const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+    const [currentStoryCollectionId, setCurrentStoryCollectionId] = useState<string | null>("unorganized");
+    const [currentStoryCollection, setCurrentStoryCollection] = useState<StoryCollection | null>(null);
+    const [storyState, setStoryState] = useLocalStorage<RootStoryState>('story-state', {
         unorganizedStories: [],
         collections: []
     });
@@ -65,7 +76,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         setIsThinking(false);
 
         setSelectedChat(null);
-        setCurrentCollection("unorganized");
+        setCurrentChatCollectionId("unorganized");
     }
 
     const handleStop = () => {
@@ -77,177 +88,33 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     };
 
     const handleChatStory = async (values: z.infer<typeof StoryChatSchema>) => {
-        try {
-            setIsStreaming(true);
-            setCurrentResponse('');
-
-            // 儲存使用者的訊息
-            const userChatMessage = userMessage(values.chatMessage);
-            const newMessages = [...messages, userChatMessage];
-            setMessages(newMessages);
-
-            // Create new AbortController
-            abortControllerRef.current = new AbortController();
-
-            const response = await handleOllamaChat(newMessages, abortControllerRef.current.signal);
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) {
-                throw new Error('Reader not available');
-            }
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                // Convert the chunk to text
-                const chunk = new TextDecoder().decode(value);
-
-                // Parse the JSON lines
-                const lines = chunk.split('\n').filter(line => line.trim());
-
-                for (const line of lines) {
-                    try {
-                        const parsedLine = JSON.parse(line);
-                        if (parsedLine.message?.content) {
-                            setCurrentResponse(prev => prev + parsedLine.message.content);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing JSON line:', e);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            toast({
-                title: "錯誤",
-                description: "與 AI 對話時發生錯誤",
-                variant: "destructive"
-            });
-        } finally {
-            setIsStreaming(false);
-            abortControllerRef.current = null;
-        }
+        // 儲存使用者的訊息
+        const userChatMessage = userMessage(values.chatMessage);
+        const newMessages = [...messages, userChatMessage];
+        setMessages(newMessages);
+        handleChat(newMessages, "與 AI 對話時發生錯誤", setIsStreaming, setCurrentResponse, toast, abortControllerRef);
     }
 
     const handleRegenerate = async (messageUid?: string) => {
         if (messages.length < 2) return; // Need at least one user message to regenerate
-
-        try {
-            setIsStreaming(true);
-            setCurrentResponse('');
-
-            // Remove the last assistant message if it exists
-            let toUid = -1;
-            if (messageUid) {
-                toUid = messages.findIndex(mes => mes.uid === messageUid);
-            }
-            const newMessages = messages.slice(0, toUid);
-            setMessages(newMessages);
-
-            // Create new AbortController
-            abortControllerRef.current = new AbortController();
-
-            const response = await handleOllamaChat(newMessages, abortControllerRef.current.signal);
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) {
-                throw new Error('Reader not available');
-            }
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = new TextDecoder().decode(value);
-                const lines = chunk.split('\n').filter(line => line.trim());
-
-                for (const line of lines) {
-                    try {
-                        const parsedLine = JSON.parse(line);
-                        if (parsedLine.message?.content) {
-                            setCurrentResponse(prev => prev + parsedLine.message.content);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing JSON line:', e);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            toast({
-                title: "錯誤",
-                description: "重新產生回應時發生錯誤",
-                variant: "destructive"
-            });
-        } finally {
-            setIsStreaming(false);
-            abortControllerRef.current = null;
+        // Remove the last assistant message if it exists
+        let toUid = -1;
+        if (messageUid) {
+            toUid = messages.findIndex(mes => mes.uid === messageUid);
         }
+        const newMessages = messages.slice(0, toUid);
+        setMessages(newMessages);
+        handleChat(newMessages, "重新產生對話時發生錯誤", setIsStreaming, setCurrentResponse, toast, abortControllerRef);
     };
 
     const handleChatTitle = async () => {
-        try {
-            setTitleStreaming(true);
-            setTitleResponse('');
-
-            const conversationContent = `<query>${JSON.stringify(messages.filter(mes => mes.role === 'user').map(mes => mes.content))}</query>`;
-            const genChatTitleMessages = [
-                systemMessage(SYSTEM_PROMPT + TITLE_GENERATOR_SYSTEM_PROMPT),
-                userMessage(conversationContent),
-            ]
-            const response = await handleOllamaChat(genChatTitleMessages);
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const reader = response.body?.getReader();
-            if (!reader) {
-                throw new Error('Reader not available');
-            }
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                // Convert the chunk to text
-                const chunk = new TextDecoder().decode(value);
-
-                // Parse the JSON lines
-                const lines = chunk.split('\n').filter(line => line.trim());
-
-                for (const line of lines) {
-                    try {
-                        const parsedLine = JSON.parse(line);
-                        if (parsedLine.message?.content) {
-                            setTitleResponse(prev => prev + parsedLine.message.content);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing JSON line:', e);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            toast({
-                title: "錯誤",
-                description: "讓 AI 產生對話Title時發生錯誤",
-                variant: "destructive"
-            });
-        } finally {
-            setTitleStreaming(false);
-        }
+        const conversationContent = `<query>${JSON.stringify(messages.filter(mes => mes.role === 'user').map(mes => mes.content))}</query>`;
+        const genChatTitleMessages = [
+            systemMessage(SYSTEM_PROMPT + TITLE_GENERATOR_SYSTEM_PROMPT),
+            userMessage(conversationContent),
+        ]
+        handleChat(genChatTitleMessages, "讓 AI 產生對話Title時發生錯誤", setTitleStreaming, setTitleResponse, toast);
     }
-
 
     // 動態調整 textarea 高度
     useEffect(() => {
@@ -314,16 +181,16 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         }
 
         chatState.collections.forEach((collection) => {
-            const findStory = collection.chats.find((chat) => chat.uid === chatUid);
-            if (findStory) {
-                chat = findStory;
+            const findChat = collection.chats.find((chat) => chat.uid === chatUid);
+            if (findChat) {
+                chat = findChat;
                 collectionId = collection.id;
             }
         })
 
         if (chat) {
             setSelectedChat(chat);
-            setCurrentCollection(collectionId);
+            setCurrentChatCollectionId(collectionId);
             setTitle(chat.title ?? '');
             setMessages(chat.messages ?? [systemMessage(SYSTEM_PROMPT)]);
         }
@@ -333,17 +200,17 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         if (selectedChat) {
             let chatCollection: ChatCollection = { id: "", name: "unorganized", chats: [] };
             let chatCollectionChats = chatState.unorganizedStories;
-            if (currentCollection !== "unorganized") {
-                const collection = chatState.collections.find((col) => col.id === currentCollection);
+            if (currentChatCollectionId !== "unorganized") {
+                const collection = chatState.collections.find((col) => col.id === currentChatCollectionId);
                 if (collection) {
                     chatCollection = collection;
                     chatCollectionChats = collection.chats;
                 }
             }
-            let otherCollections = chatState.collections.filter((col) => col.id !== currentCollection) || [];
+            let otherCollections = chatState.collections.filter((col) => col.id !== currentChatCollectionId) || [];
             const isNewStory = !chatCollectionChats.find((chat) => chat.uid === selectedChat.uid);
             const otherStories = chatCollectionChats.filter((chat) => chat.uid !== selectedChat.uid);
-            if (currentCollection === "unorganized") {
+            if (currentChatCollectionId === "unorganized") {
                 setChatState({
                     ...chatState,
                     unorganizedStories: [...otherStories, selectedChat],
@@ -363,6 +230,48 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         }
 
     }, [selectedChat])
+
+    useEffect(() => {
+        if (currentStoryUid) {
+            let story = null;
+            let collectionId = "unorganized";
+            const unorganizedStory = storyState.unorganizedStories.find((story) => story.uid === currentStoryUid);
+            if (unorganizedStory) {
+                story = unorganizedStory;
+            }
+
+            storyState.collections.forEach((collection) => {
+                const findStory = collection.stories.find((story) => story.uid === currentStoryUid);
+                if (findStory) {
+                    story = findStory;
+                    collectionId = collection.id;
+                }
+            })
+
+            if (story) {
+                setSelectedStory(story);
+                setCurrentStoryCollectionId(collectionId);
+                let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
+                let storyCollectionStories = storyState.unorganizedStories;
+                if (collectionId !== "unorganized") {
+                    const collection = storyState.collections.find((col) => col.id === collectionId);
+                    if (collection) {
+                        storyCollection = collection;
+                        storyCollectionStories = collection.stories;
+                    }
+                }
+                setCurrentStoryCollection(storyCollection);
+
+                console.debug('currentStory:', `${storyCollection.name}/${story.title}`);
+            }
+
+        }
+        else {
+            setSelectedStory(null);
+            setCurrentStoryCollectionId("unorganized");
+            setCurrentStoryCollection(null);
+        }
+    }, [currentStoryUid]);
 
     return (
         <AnimatePresence>
@@ -387,13 +296,23 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                 className="fixed bottom-4 right-8 flex justify-center p-0 m-0 w-[48rem]"
             >
                 <Card className="w-full h-full bg-slate-50 shadow-lg">
-                    <CardHeader className="h-8 flex flex-row justify-between items-center px-2 py-1 space-y-0 bg-slate-200 rounded-tl-lg rounded-tr-lg">
+                    <CardHeader className="h-8 flex flex-row items-center px-2 py-1 space-y-0 bg-slate-200 rounded-tl-lg rounded-tr-lg">
                         <Button variant='ghost' className="px-2 py-0 h-full" title="新對話" onClick={handleNewChatSession}>
                             <LucidePencilLine className="w-4 h-4" />
                         </Button>
-                        {title && <span className="text-xs text-gray-500">{title}</span>}
-                        {!title && titleStreaming && <ThinkingDots />}
-                        <Button variant='ghost' className="px-2 py-0 h-full" title="縮小" onClick={toggleCollapse}>
+                        <div className="flex w-full justify-start space-x-8 pl-4">
+                            <div className="flex flex-row space-x-1 items-center justify-self-start">
+                                {currentStoryCollectionId === "unorganized" && <span className="text-xs text-gray-500">未分類</span>}
+                                {currentStoryCollectionId !== "unorganized" && <span className="text-xs text-gray-500">{currentStoryCollection?.name}</span>}
+                                <span>{`/`}</span>
+                                {selectedStory && <span className="text-xs text-gray-500">{selectedStory.title}</span>}
+                            </div>
+                            <div className="flex flex-row space-x-1 items-center">
+                                {title && <span className="text-xs text-gray-500">{title}</span>}
+                                {!title && titleStreaming && <ThinkingDots />}
+                            </div>
+                        </div>
+                        <Button variant='ghost' className="justify-self-end px-2 py-0 h-full" title="縮小" onClick={toggleCollapse}>
                             <ChevronDownIcon className="w-4 h-4" />
                         </Button>
                     </CardHeader>
