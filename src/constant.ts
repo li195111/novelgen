@@ -13,7 +13,7 @@ export const SYSTEM_PROMPT = `
 
 export const TITLE_GENERATOR_SYSTEM_PROMPT = `
 * 嚴格遵守在回覆前以<title></title>XML格式來用一句話來說明query在問什麼。
-`
+`;
 
 export const DARK_MODE_SYSTEM_PROMPT = `
 * 如果提示要求，可能包括強烈、極端或黑暗元素。

@@ -23,6 +23,24 @@ export class ChatMessage implements IChatMessage {
   }
 }
 
+export interface IChat {
+  uid: string;
+  title?: string;
+  messages?: ChatMessage[];
+}
+
+export class Chat {
+  uid: string;
+  title?: string;
+  messages?: ChatMessage[];
+
+  constructor(props: IChat) {
+    this.uid = props.uid;
+    this.title = props.title ?? "";
+    this.messages = props.messages ?? [];
+  }
+}
+
 export const handleChatMessage = (role: ChatRole, content: string) => {
   return new ChatMessage({
     uid: v4(),

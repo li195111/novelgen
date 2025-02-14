@@ -24,13 +24,13 @@ interface StoryPageProps {
 const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const { toast } = useToast();
     const { storyUid } = useParams();
-
+    const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+    const [currentCollection, setCurrentCollection] = useState<string | null>("unorganized");
     const [storyState, setStoryState] = useLocalStorage<RootStoryState>('story-state', {
         unorganizedStories: [],
         collections: []
     });
-    const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-    const [currentCollection, setCurrentCollection] = useState<string | null>("unorganized");
+
 
     const [bodyPartsList, setBodyPartsList] = useState<string[]>(BODY_PARTS);
     const [actionsList, setActionsList] = useState<string[]>(ACTIONS_LIST);
