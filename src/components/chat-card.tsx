@@ -12,7 +12,7 @@ import { assistantMessage, IChatMessage, systemMessage, userMessage } from "@/mo
 import { parseResponse } from "@/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
-import { BotMessageSquareIcon, ChevronDownIcon, LucidePencilLine, RefreshCw } from "lucide-react";
+import { BotMessageSquareIcon, ChevronDownIcon, LucidePencilLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
@@ -28,7 +28,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const [isStreaming, setIsStreaming] = useState(false);
     const historyRef = useRef<HTMLDivElement>(null);
 
-    const [title, setTitle] = useState('');
+    const [title, setTitle] = useState<string>('');
     const [titleResponse, setTitleResponse] = useState<string>('');
     const [titleStreaming, setTitleStreaming] = useState(false);
 
@@ -268,7 +268,6 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
             const parsed = parseResponse(currentResponse);
             if (parsed) {
                 setThinking(parsed.thinking);
-                setTitle(parsed.title);
                 setResponseResult(parsed.response);
                 setIsThinking(parsed.isThinking);
             }
