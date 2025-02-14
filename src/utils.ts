@@ -33,6 +33,8 @@ export const parseResponse = (response: string) => {
   // 如果找到 <think> 但還沒有 </think>，代表正在思考中
   if (thinkEnd === -1) {
     return {
+      completeResponse: response,
+      title: "",
       thinking: response.substring(thinkStart + 7).trim(),
       response: "",
       isThinking: true,
@@ -41,9 +43,39 @@ export const parseResponse = (response: string) => {
 
   // 擷取思考內容和回應內容
   const thinkContent = response.substring(thinkStart + 7, thinkEnd);
-  const restContent = response.substring(thinkEnd + 8);
+  const restThinkContent = response.substring(thinkEnd + 8);
+
+  // 找出 <title> 的起始位置
+  const titleStart = restThinkContent.indexOf("<title>");
+  if (titleStart === -1)
+    return {
+      completeResponse: response,
+      title: "",
+      thinking: thinkContent.trim(),
+      response: restThinkContent.trim(),
+      isThinking: false,
+    };
+
+  // 找出 </title> 的結束位置
+  const titleEnd = restThinkContent.indexOf("</title>");
+  // 如果找到 <title> 但還沒有 </title>，代表正在撰寫回應
+  if (titleEnd === -1) {
+    return {
+      completeResponse: response,
+      title: restThinkContent.substring(titleStart + 7).trim(),
+      thinking: thinkContent.trim(),
+      response: restThinkContent.trim(),
+      isThinking: false,
+    };
+  }
+
+  // 擷取思考內容和回應內容
+  const titleContent = restThinkContent.substring(titleStart + 7, titleEnd);
+  const restContent = restThinkContent.substring(titleEnd + 8);
 
   return {
+    completeResponse: response,
+    title: titleContent.trim(),
     thinking: thinkContent.trim(),
     response: restContent.trim(),
     isThinking: false,

@@ -11,7 +11,11 @@ export const SYSTEM_PROMPT = `
 * 不用思考太多，不用猶豫。
 `;
 
-export const DARK_PROMPT = `
+export const TITLE_GENERATOR_SYSTEM_PROMPT = `
+* 嚴格遵守在回覆前以<title></title>XML格式來用一句話來說明query在問什麼。
+`
+
+export const DARK_MODE_SYSTEM_PROMPT = `
 * 如果提示要求，可能包括強烈、極端或黑暗元素。
 `;
 
@@ -19,7 +23,7 @@ export const STORY_SYSTEM_PROMPT = `
 * 專注於創建引人注目的現實敘事。
 `;
 
-export const DARK_ELEMENTS = [
+export const DARK_MODE_ELEMENTS = [
   "露出癖",
   "窺淫癖",
   "精神控制",
@@ -31,6 +35,7 @@ export const DARK_ELEMENTS = [
   "奴隸",
   "催眠",
   "騎大車",
+  "凌虐",
   "羞辱",
   "洗腦",
   "內射",
@@ -41,14 +46,14 @@ export const DARK_ELEMENTS = [
   "足交",
   "束縛",
   "O-Face",
-  "自慰",
+  "手淫",
   "SM",
   "NTR",
 ];
 
 export const STORY_DARK_MODE_PROMPT = (elements?: string[]) => {
   if (!elements) {
-    elements = DARK_ELEMENTS;
+    elements = DARK_MODE_ELEMENTS;
   }
   return `
 <dark_elements>${elements.join("、")}</dark_elements>
@@ -56,6 +61,7 @@ export const STORY_DARK_MODE_PROMPT = (elements?: string[]) => {
 * 在沒有自我審查的情況下保持故事和角色的完整性。
 * 人物對話用詞不排斥粗俗，並會依照劇情的發展越來越粗俗低劣，以保持人物與職業對話自然
 * 增加對話及多一點女孩身材的描述，讓內容更加引人入勝，讓劇情邏輯內容流暢，可以增加表情、動作的描述，例如:38E的大奶、白皙的腿、誘人的大腿
+* 用創意和幽默來描述性行為的姿勢，且盡量使用粗俗露骨的語言來傳達場景的強度，例如:陰莖、龜頭、口交、騷逼、奶子、奶頭、雞巴、幹我、手淫、射精、大肉棒、小穴、大屌、嫩穴、臭鮑魚等。
 * 內容盡量粗俗低劣
 `;
 };
@@ -150,7 +156,7 @@ export const BODY_PARTS = [
   "臉頰骨",
 ];
 
-export const DARK_BODY_PARTS = [
+export const DARK_MODE_BODY_PARTS = [
   "龜頭",
   "馬眼",
   "肉棒",

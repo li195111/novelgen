@@ -33,17 +33,17 @@ export const handleChatMessage = (role: ChatRole, content: string) => {
 };
 
 export const systemMessage = (content: string) => {
-  return handleChatMessage("system", content);
+  return handleChatMessage("system", `${content.trim()}`); // 將系統訊息包裹在 <system> 標籤中
 };
 
 export const userMessage = (content: string) => {
-  return handleChatMessage("user", content);
+  return handleChatMessage("user", `${content.trim()}`); // 將使用者輸入的內容包裹在 <query> 標籤中
 };
 
 export const assistantMessage = (content: string) => {
-  return handleChatMessage("assistant", content);
+  return handleChatMessage("assistant", `${content.trim()}`); // 將助理回應的內容包裹在 <response> 標籤中
 };
 
 export const toolMessage = (content: string) => {
-  return handleChatMessage("tool", content);
+  return handleChatMessage("tool", content.trim());
 };

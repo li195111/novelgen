@@ -1,10 +1,9 @@
-import MarkdownEditor from "@/components/markdown-editor";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SendIcon } from "lucide-react";
+import { SendIcon, StopCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,10 +14,12 @@ export const StoryChatSchema = z.object({
 export type StoryType = z.infer<typeof StoryChatSchema>;
 
 interface StoryChatFormProps {
+    isStreaming?: boolean;
+    handleStop?: () => void;
     handleSubmit: (values: any) => void;
 }
 
-export const StoryChatForm: React.FC<StoryChatFormProps> = ({ handleSubmit }) => {
+export const StoryChatForm: React.FC<StoryChatFormProps> = ({ isStreaming, handleStop, handleSubmit }) => {
     const chatMessageRef = useRef<HTMLTextAreaElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
 
@@ -66,8 +67,14 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ handleSubmit }) =>
                     )}
                 />
                 <div className="flex w-full justify-end">
-                    <Button type="submit" className="w-9 rounded-full" ref={submitRef}>
-                        <SendIcon />
+                    <Button
+                        type="submit"
+                        className="w-9 rounded-full"
+                        onClick={isStreaming ? handleStop : undefined}
+                        ref={isStreaming ? undefined : submitRef}
+                    >
+                        {isStreaming && <StopCircle className="text-red-500" />}
+                        {!isStreaming && isStreaming !== undefined && <SendIcon />}
                     </Button>
                 </div>
             </form>
