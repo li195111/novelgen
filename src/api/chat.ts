@@ -87,6 +87,7 @@ export const handleChat = async (
         title: "錯誤",
         description: errorDescription,
         variant: "destructive",
+        duration: 5000,
       });
     }
   } finally {

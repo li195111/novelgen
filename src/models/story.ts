@@ -9,6 +9,7 @@ export interface StoryProps {
   content?: string;
   currentScene?: string;
   createTimestamp?: number;
+  lastModifiedTimestamp?: number;
 }
 
 export class Story {
@@ -20,6 +21,7 @@ export class Story {
   content: string;
   currentScene: string;
   createTimestamp?: number;
+  lastModifiedTimestamp?: number;
 
   constructor(props: StoryProps) {
     this.uid = props.uid;
@@ -30,5 +32,6 @@ export class Story {
     this.content = props.content ?? "";
     this.currentScene = props.currentScene ?? "";
     this.createTimestamp = props.createTimestamp ?? Date.now();
+    this.lastModifiedTimestamp = props.lastModifiedTimestamp ?? Date.now();
   }
 }

@@ -261,8 +261,6 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                     }
                 }
                 setCurrentStoryCollection(storyCollection);
-
-                console.debug('currentStory:', `${storyCollection.name}/${story.title}`);
             }
 
         }

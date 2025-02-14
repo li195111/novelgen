@@ -14,9 +14,10 @@ import { Link } from 'react-router-dom';
 interface DraggableStoryItemProps {
     story: Story;
     index: number;
+    onDelete: (story: Story) => void;
 }
 
-export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index }) => {
+export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index, onDelete }) => {
     return (
         <Draggable
             key={`story-${story.uid}`}
@@ -48,7 +49,7 @@ export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index }
                                 </SidebarMenuAction>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent side="right" align="start">
-                                <DropdownMenuItem asChild className="cursor-pointer hover:bg-destructive">
+                                <DropdownMenuItem asChild className="cursor-pointer hover:bg-destructive" onClick={() => onDelete(story)}>
                                     <Label className="cursor-pointer hover:bg-destructive">
                                         <Trash2Icon />
                                         刪除

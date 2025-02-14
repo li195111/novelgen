@@ -39,8 +39,8 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const [phrasesList, setPhrasesList] = useState<string[]>([]);
 
 
-    const handleAddStory = (values: z.infer<typeof StorySchema>) => {
-        const saveStory = new Story(values);
+    const handleSaveStory = (values: z.infer<typeof StorySchema>) => {
+        const saveStory = new Story({ ...values, lastModifiedTimestamp: Date.now() });
         let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
         let storyCollectionStories = storyState.unorganizedStories;
         if ((currentStoryCollectionId !== "unorganized") && currentStoryCollection) {
@@ -70,8 +70,8 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
         }
 
         toast({
-            title: isNewStory ? "新增故事" : "更新故事",
-            description: `已${isNewStory ? '新增' : '更新'}故事：${saveStory.title}`,
+            title: isNewStory ? "新增故事" : "更新故事" + `：${saveStory.title}`,
+            duration: 2000,
         });
 
     }
@@ -120,7 +120,7 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
         <div className="h-full">
             <Card>
                 <div className="flex flex-col px-4 py-2.5 space-y-2">
-                    <StoryForm defaultStory={selectedStory} handleSubmit={handleAddStory} />
+                    <StoryForm defaultStory={selectedStory} handleSubmit={handleSaveStory} />
                 </div>
             </Card>
             <Card>
