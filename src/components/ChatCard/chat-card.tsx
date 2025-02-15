@@ -29,10 +29,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
     const [chatState, setChatState] = useChatStorage();
-    const {
-        chatSession, resetChatSession, updateChatSession,
-        handleChatStory, handleRegenerate, handleChatTitle
-    } = useChatSession([systemMessage(SYSTEM_PROMPT)]);
+    const { chatSession, resetChatSession, updateChatSession, handleChatStory, handleRegenerate, handleChatTitle } = useChatSession([systemMessage(SYSTEM_PROMPT)]);
 
     const [currentStoryUid, setCurrentStoryUid] = useCurrentStoryStorage();
     const [selectedStory, setSelectedStory] = useState<Story | null>(null);
@@ -52,7 +49,6 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
 
     const handleNewChatSession = () => {
         resetChatSession();
-
         setSelectedChat(null);
         setCurrentChatCollectionId("unorganized");
     }
@@ -202,10 +198,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                     exit={{ scale: 0, opacity: 0 }}
                     className="fixed bottom-6 right-10 z-50"
                 >
-                    <Button
-                        className="rounded-full w-9 h-9 bg-slate-800 hover:bg-slate-500 text-white shadow-lg"
-                        onClick={toggleCollapse}
-                    >
+                    <Button className="rounded-full w-9 h-9 bg-slate-800 hover:bg-slate-500 text-white shadow-lg" onClick={toggleCollapse}>
                         <BotMessageSquareIcon className="w-6 h-6" />
                     </Button>
                 </motion.div>
