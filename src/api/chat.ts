@@ -25,8 +25,12 @@ export const handleOllamaChat = async (
 export const handleChat = async (
   messages: ChatMessage[],
   errorDescription: string,
-  streamingCallback?: Dispatch<SetStateAction<boolean>>,
-  responseCallback?: Dispatch<SetStateAction<string>>,
+  streamingCallback?:
+    | Dispatch<SetStateAction<boolean>>
+    | ((value: boolean) => void),
+  responseCallback?:
+    | Dispatch<SetStateAction<string>>
+    | ((value: string) => void),
   toastCallback?: (props: any) => {},
   abortControllerRef?: React.MutableRefObject<AbortController | null>
 ) => {
@@ -72,7 +76,7 @@ export const handleChat = async (
           const parsedLine = JSON.parse(line);
           if (parsedLine.message?.content) {
             if (responseCallback) {
-              responseCallback((prev) => prev + parsedLine.message.content);
+              responseCallback(parsedLine.message.content);
             }
           }
         } catch (e) {

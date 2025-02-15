@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { ChatSessionState } from "@/hooks/use-chat-session";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SendIcon, StopCircle } from "lucide-react";
@@ -14,12 +15,12 @@ export const StoryChatSchema = z.object({
 export type StoryType = z.infer<typeof StoryChatSchema>;
 
 interface StoryChatFormProps {
-    isStreaming?: boolean;
+    chatSession: ChatSessionState;
     handleStop?: () => void;
     handleSubmit: (values: any) => void;
 }
 
-export const StoryChatForm: React.FC<StoryChatFormProps> = ({ isStreaming, handleStop, handleSubmit }) => {
+export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, handleSubmit }) => {
     const chatMessageRef = useRef<HTMLTextAreaElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
 
@@ -70,11 +71,11 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ isStreaming, handl
                     <Button
                         type="submit"
                         className="w-9 rounded-full"
-                        onClick={isStreaming ? handleStop : undefined}
-                        ref={isStreaming ? undefined : submitRef}
+                        onClick={chatSession.isStreaming ? handleStop : undefined}
+                        ref={chatSession.isStreaming ? undefined : submitRef}
                     >
-                        {isStreaming && <StopCircle className="text-red-500" />}
-                        {!isStreaming && isStreaming !== undefined && <SendIcon />}
+                        {chatSession.isStreaming && <StopCircle className="text-red-500" />}
+                        {!chatSession.isStreaming && chatSession.isStreaming !== undefined && <SendIcon />}
                     </Button>
                 </div>
             </form>

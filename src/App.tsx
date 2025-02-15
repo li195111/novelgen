@@ -1,5 +1,5 @@
 import "@/App.css";
-import { ChatCard } from "@/components/chat-card";
+import { ChatCard } from "@/components/ChatCard/chat-card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import HomePage from "@/pages/home";
 import SettingsPage from "@/pages/settings";
