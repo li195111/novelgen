@@ -8,11 +8,8 @@ import { SYSTEM_PROMPT } from "@/constant";
 import { useChatSession } from "@/hooks/use-chat-session";
 import { useChatStorage } from "@/hooks/use-chat-storage";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
-import { useStoryStorage } from "@/hooks/use-story-storage";
 import { assistantMessage, Chat, systemMessage } from "@/models/chat";
 import { ChatCollection } from "@/models/chat-collection";
-import { Story } from "@/models/story";
-import { StoryCollection } from "@/models/story-collection";
 import { parseResponse } from "@/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
@@ -30,15 +27,9 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
     const [chatState, setChatState] = useChatStorage();
     const { chatSession, resetChatSession, updateChatSession, handleChatStory, handleRegenerate, handleChatTitle } = useChatSession([systemMessage(SYSTEM_PROMPT)]);
-
-    const [currentStoryUid, setCurrentStoryUid] = useCurrentStoryStorage();
-    const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-    const [currentStoryCollectionId, setCurrentStoryCollectionId] = useState<string | null>("unorganized");
-    const [currentStoryCollection, setCurrentStoryCollection] = useState<StoryCollection | null>(null);
-    const [storyState, setStoryState] = useStoryStorage();
+    const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
 
     const historyRef = useRef<HTMLDivElement>(null);
-
     const abortControllerRef = useRef<AbortController | null>(null);
 
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -149,46 +140,6 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         setChatState(updatedChatState);
     }, [selectedChat, currentChatCollectionId]);
 
-    useEffect(() => {
-        if (currentStoryUid) {
-            let story = null;
-            let collectionId = "unorganized";
-            const unorganizedStory = storyState.unorganizedStories.find((story) => story.uid === currentStoryUid);
-            if (unorganizedStory) {
-                story = unorganizedStory;
-            }
-
-            storyState.collections.forEach((collection) => {
-                const findStory = collection.stories.find((story) => story.uid === currentStoryUid);
-                if (findStory) {
-                    story = findStory;
-                    collectionId = collection.id;
-                }
-            })
-
-            if (story) {
-                setSelectedStory(story);
-                setCurrentStoryCollectionId(collectionId);
-                let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
-                let storyCollectionStories = storyState.unorganizedStories;
-                if (collectionId !== "unorganized") {
-                    const collection = storyState.collections.find((col) => col.id === collectionId);
-                    if (collection) {
-                        storyCollection = collection;
-                        storyCollectionStories = collection.stories;
-                    }
-                }
-                setCurrentStoryCollection(storyCollection);
-            }
-
-        }
-        else {
-            setSelectedStory(null);
-            setCurrentStoryCollectionId("unorganized");
-            setCurrentStoryCollection(null);
-        }
-    }, [currentStoryUid, storyState]);
-
     return (
         <AnimatePresence>
             {isCollapsed ? (
@@ -210,12 +161,24 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                     className="fixed bottom-4 right-8 flex justify-center p-0 m-0 w-[48rem]"
                 >
                     <Card className="w-full h-full bg-slate-50 shadow-lg">
-                        <ChatCardHeader chatSession={chatSession} toggleCollapse={toggleCollapse} handleNewChatSession={handleNewChatSession} currentStoryCollectionId={currentStoryCollectionId} currentStoryCollection={currentStoryCollection} selectedStory={selectedStory} />
-                        <ChatContent historyRef={historyRef} chatSession={chatSession} handleRegenerate={handleRegenerate} />
+                        <ChatCardHeader
+                            chatSession={chatSession}
+                            currentStoryCollectionId={currentStoryCollectionId}
+                            currentStoryCollection={currentStoryCollection}
+                            selectedStory={selectedStory}
+                            toggleCollapse={toggleCollapse}
+                            handleNewChatSession={handleNewChatSession} />
+                        <ChatContent
+                            chatSession={chatSession}
+                            historyRef={historyRef}
+                            handleRegenerate={handleRegenerate} />
                         {/* 輸入表單 */}
                         <Separator orientation="horizontal" className="border" />
                         <CardFooter className="p-2">
-                            <StoryChatForm chatSession={chatSession} handleStop={handleStopChat} handleSubmit={handleChatStory} />
+                            <StoryChatForm
+                                chatSession={chatSession}
+                                handleStop={handleStopChat}
+                                handleSubmit={handleChatStory} />
                         </CardFooter>
                     </Card>
                 </motion.div>

@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ACTIONS_LIST, BODY_PARTS } from "@/constant";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
-import { useStoryStorage } from "@/hooks/use-story-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
 import { StoryCollection } from "@/models/story-collection";
@@ -25,11 +24,7 @@ interface StoryPageProps {
 const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const { toast } = useToast();
     const { storyUid } = useParams();
-    const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-    const [currentStoryCollectionId, setCurrentStoryCollectionId] = useState<string | null>("unorganized");
-    const [currentStoryCollection, setCurrentStoryCollection] = useState<StoryCollection | null>(null);
-    const [storyState, setStoryState] = useStoryStorage();
-    const [currentStoryUid, setCurrentStoryUid] = useCurrentStoryStorage();
+    const { setStoryState, selectedStory, currentStoryCollectionId, currentStoryCollection, setCurrentStoryUid } = useCurrentStoryStorage();
 
 
     const [bodyPartsList, setBodyPartsList] = useState<string[]>(BODY_PARTS);
@@ -39,39 +34,22 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
 
     const handleSaveStory = (values: z.infer<typeof StorySchema>) => {
         const saveStory = new Story({ ...values, lastModifiedTimestamp: Date.now() });
-        let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
-        let storyCollectionStories = storyState.unorganizedStories;
-        if ((currentStoryCollectionId !== "unorganized") && currentStoryCollection) {
-            storyCollection = currentStoryCollection;
-            storyCollectionStories = currentStoryCollection.stories;
-        }
-        let otherCollections = storyState.collections.filter((col) => col.id !== currentStoryCollectionId) || [];
-        const isNewStory = !storyCollectionStories.find((story) => story.uid === saveStory.uid);
-        const otherStories = storyCollectionStories.filter((story) => story.uid !== saveStory.uid);
-
-        if (currentStoryCollectionId === "unorganized") {
-            setStoryState({
-                ...storyState,
-                unorganizedStories: [...otherStories, saveStory],
+        setStoryState((prev) => {
+            let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
+            let storyCollectionStories = prev.unorganizedStories;
+            if ((currentStoryCollectionId !== "unorganized") && currentStoryCollection) {
+                storyCollection = currentStoryCollection;
+                storyCollectionStories = currentStoryCollection.stories;
+            }
+            let otherCollections = prev.collections.filter((col) => col.id !== currentStoryCollectionId) || [];
+            const isNewStory = !storyCollectionStories.find((story) => story.uid === saveStory.uid);
+            const otherStories = storyCollectionStories.filter((story) => story.uid !== saveStory.uid);
+            toast({
+                title: `${isNewStory ? "新增故事" : "更新故事"}: ${saveStory.title}`,
+                duration: 2000,
             });
-        } else {
-            setStoryState({
-                ...storyState,
-                collections: [
-                    ...otherCollections,
-                    {
-                        ...storyCollection,
-                        stories: [...otherStories, saveStory]
-                    }
-                ]
-            })
-        }
-
-        toast({
-            title: isNewStory ? "新增故事" : "更新故事" + `：${saveStory.title}`,
-            duration: 2000,
+            return currentStoryCollectionId === "unorganized" ? { ...prev, unorganizedStories: [...otherStories, saveStory] } : { ...prev, collections: [...otherCollections, { ...storyCollection, stories: [...otherStories, saveStory] }] };
         });
-
     }
 
     useEffect(() => {
@@ -79,40 +57,6 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
             setCurrentStoryUid(storyUid);
         }
     }, [storyUid]);
-
-    useEffect(() => {
-        let story = null;
-        let collectionId = "unorganized";
-        const unorganizedStory = storyState.unorganizedStories.find((story) => story.uid === storyUid);
-        if (unorganizedStory) {
-            story = unorganizedStory;
-        }
-
-        storyState.collections.forEach((collection) => {
-            const findStory = collection.stories.find((story) => story.uid === storyUid);
-            if (findStory) {
-                story = findStory;
-                collectionId = collection.id;
-            }
-        })
-
-        if (story) {
-            setSelectedStory(story);
-            setCurrentStoryCollectionId(collectionId);
-
-            let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
-            let storyCollectionStories = storyState.unorganizedStories;
-            if (collectionId !== "unorganized") {
-                const collection = storyState.collections.find((col) => col.id === collectionId);
-                if (collection) {
-                    storyCollection = collection;
-                    storyCollectionStories = collection.stories;
-                }
-            }
-            setCurrentStoryCollection(storyCollection);
-
-        }
-    }, [storyUid, storyState]);
 
     return (
         <div className="h-full">

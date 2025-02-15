@@ -6,7 +6,7 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ }) => {
-    const [currentStoryUid, setCurrentStoryUid] = useCurrentStoryStorage();
+    const { setCurrentStoryUid } = useCurrentStoryStorage();
 
     useEffect(() => {
         setCurrentStoryUid('');
