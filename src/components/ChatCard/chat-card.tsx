@@ -1,15 +1,18 @@
 import "@/App.css";
+import { ChatContent } from "@/components/ChatCard/chat-content";
 import { ChatCardHeader } from "@/components/ChatCard/chat-header";
 import { StoryChatForm } from "@/components/story-chat-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
 import { SYSTEM_PROMPT } from "@/constant";
 import { useChatSession } from "@/hooks/use-chat-session";
-import { useLocalStorage } from "@/hooks/use-storage";
+import { useChatStorage } from "@/hooks/use-chat-storage";
+import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { assistantMessage, Chat, systemMessage } from "@/models/chat";
-import { ChatCollection, RootChatState } from "@/models/chat-collection";
+import { ChatCollection } from "@/models/chat-collection";
 import { Story } from "@/models/story";
-import { RootStoryState, StoryCollection } from "@/models/story-collection";
+import { StoryCollection } from "@/models/story-collection";
 import { parseResponse } from "@/utils";
 import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
@@ -17,7 +20,6 @@ import { BotMessageSquareIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { v4 } from "uuid";
-import { ChatContent } from "./chat-content";
 
 interface ChatCardProps {
 }
@@ -26,23 +28,17 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { chatUid } = useParams();
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
-    const [chatState, setChatState] = useLocalStorage<RootChatState>('chat-state', {
-        unorganizedStories: [],
-        collections: []
-    });
+    const [chatState, setChatState] = useChatStorage();
     const {
         chatSession, resetChatSession, updateChatSession,
         handleChatStory, handleRegenerate, handleChatTitle
     } = useChatSession([systemMessage(SYSTEM_PROMPT)]);
 
-    const [currentStoryUid, setCurrentStoryUid] = useLocalStorage<string>('current-story', '');
+    const [currentStoryUid, setCurrentStoryUid] = useCurrentStoryStorage();
     const [selectedStory, setSelectedStory] = useState<Story | null>(null);
     const [currentStoryCollectionId, setCurrentStoryCollectionId] = useState<string | null>("unorganized");
     const [currentStoryCollection, setCurrentStoryCollection] = useState<StoryCollection | null>(null);
-    const [storyState, setStoryState] = useLocalStorage<RootStoryState>('story-state', {
-        unorganizedStories: [],
-        collections: []
-    });
+    const [storyState, setStoryState] = useStoryStorage();
 
     const historyRef = useRef<HTMLDivElement>(null);
 

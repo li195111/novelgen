@@ -1,4 +1,5 @@
 import { DraggableStoryItem } from "@/components/app-sidebar-draggable-story-item";
+import { DeleteStoryAlertDialog } from "@/components/delete-story-alert-dialog";
 import { DeleteStoryCollectionAlertDialog } from "@/components/delete-story-collection-alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,24 +16,20 @@ import {
     SidebarHeader,
     SidebarMenuButton
 } from "@/components/ui/sidebar";
-import { useLocalStorage } from "@/hooks/use-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
-import { RootStoryState, StoryCollection } from "@/models/story-collection";
+import { StoryCollection } from "@/models/story-collection";
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, MoreHorizontal, PenLineIcon, PlusCircleIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { Link } from 'react-router-dom';
 import { v4 } from 'uuid';
-import { DeleteStoryAlertDialog } from "./delete-story-alert-dialog";
 
 export function AppSidebar() {
     const { toast } = useToast();
-    const [storyState, setStoryState] = useLocalStorage<RootStoryState>('story-state', {
-        unorganizedStories: [],
-        collections: []
-    });
+    const [storyState, setStoryState] = useStoryStorage();
     const [selectedCollection, setSelectedCollection] = useState<StoryCollection | null>(null);
     const [deleteCollectionAlertOpen, setDeleteCollectionAlertOpen] = useState(false);
 

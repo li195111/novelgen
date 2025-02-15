@@ -1,4 +1,4 @@
-import { useLocalStorage } from '@/hooks/use-storage';
+import { useCurrentStoryStorage } from '@/hooks/use-current-story-storage';
 import React, { useEffect } from 'react';
 
 
@@ -6,7 +6,7 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ }) => {
-    const [currentStoryUid, setCurrentStoryUid] = useLocalStorage<string>('current-story', '');
+    const [currentStoryUid, setCurrentStoryUid] = useCurrentStoryStorage();
 
     useEffect(() => {
         setCurrentStoryUid('');

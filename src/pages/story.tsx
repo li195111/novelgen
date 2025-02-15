@@ -9,10 +9,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ACTIONS_LIST, BODY_PARTS } from "@/constant";
-import { useLocalStorage } from "@/hooks/use-storage";
+import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
-import { RootStoryState, StoryCollection } from "@/models/story-collection";
+import { StoryCollection } from "@/models/story-collection";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { v4 } from "uuid";
@@ -27,11 +28,8 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const [selectedStory, setSelectedStory] = useState<Story | null>(null);
     const [currentStoryCollectionId, setCurrentStoryCollectionId] = useState<string | null>("unorganized");
     const [currentStoryCollection, setCurrentStoryCollection] = useState<StoryCollection | null>(null);
-    const [storyState, setStoryState] = useLocalStorage<RootStoryState>('story-state', {
-        unorganizedStories: [],
-        collections: []
-    });
-    const [currentStoryUid, setCurrentStoryUid] = useLocalStorage<string>('current-story', '');
+    const [storyState, setStoryState] = useStoryStorage();
+    const [currentStoryUid, setCurrentStoryUid] = useCurrentStoryStorage();
 
 
     const [bodyPartsList, setBodyPartsList] = useState<string[]>(BODY_PARTS);
