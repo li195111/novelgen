@@ -5,6 +5,7 @@ import AddSceneDialog from "@/components/add-scene-dialog";
 import { CharacterSchema } from "@/components/character-form";
 import EditCharacterDialog from "@/components/edit-character-dialog";
 import EditSceneDialog from "@/components/edit-scene-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ import { Character } from "@/models/character";
 import { Story } from "@/models/story";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusCircleIcon } from "lucide-react";
+import { PlusCircleIcon, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
@@ -24,6 +25,7 @@ import { z } from "zod";
 export const StorySchema = z.object({
     uid: z.string().nonempty(),
     title: z.string().nonempty({ message: "請輸入故事標題" }),
+    tags: z.array(z.string()).optional(),
     characters: z.array(CharacterSchema),
     scenes: z.array(z.string()),
     outline: z.string().optional(),
@@ -59,6 +61,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
         defaultValues: {
             uid: defaultStory?.uid ?? v4(),
             title: defaultStory?.title ?? "",
+            tags: defaultStory?.tags ?? [],
             characters: characterList,
             scenes: sceneList,
             outline: defaultStory?.outline ?? "",
@@ -182,6 +185,68 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                             <FormMessage />
                         </FormItem>
                     )}
+                />
+                <FormField
+                    control={storyForm.control}
+                    name="tags"
+                    render={({ field }) => {
+                        const tags = field.value || [];
+
+                        const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value;
+
+                            // 當按下逗號或 Enter 時
+                            if ((e.key === ',' || e.key === 'Enter') && value.trim()) {
+                                e.preventDefault();
+                                // 移除可能的逗號
+                                const newTag = value.replace(/,/g, '').trim();
+                                if (newTag && !tags.includes(newTag)) {
+                                    const newTags = [...tags, newTag];
+                                    field.onChange(newTags);
+                                }
+                                input.value = '';
+                            }
+                        };
+
+                        const removeTag = (tagToRemove: string) => {
+                            const newTags = tags.filter(tag => tag !== tagToRemove);
+                            field.onChange(newTags);
+                        };
+
+                        return (
+                            <FormItem>
+                                <FormControl>
+                                    <div className="space-y-2">
+                                        <div className="flex flex-wrap gap-2">
+                                            {tags.map((tag, _) => (
+                                                <Badge
+                                                    key={`tag-${v4()}`}
+                                                    variant="secondary"
+                                                    className="px-3 py-1"
+                                                >
+                                                    {tag}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTag(tag)}
+                                                        className="ml-2 hover:text-destructive"
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </button>
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                        <Input
+                                            className="border-0 shadow-none"
+                                            placeholder="輸入標籤後按 Enter 或逗號..."
+                                            onKeyDown={handleKeyDown}
+                                        />
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        );
+                    }}
                 />
                 <AddCharacterDialog
                     open={isAddCharacterDialogOpen}

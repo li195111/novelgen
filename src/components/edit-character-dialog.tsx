@@ -4,6 +4,7 @@ import "@/App.css";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog";
@@ -31,6 +32,7 @@ const EditCharacterDialog: React.FC<EditCharacterDialogProps> = ({ open, onClose
                 <DialogHeader>
                     <DialogTitle>編輯角色</DialogTitle>
                 </DialogHeader>
+                <DialogDescription className="p-0 m-0"></DialogDescription>
                 <CharacterForm defaultCharacter={character} handleSubmit={handleSubmit} />
             </DialogContent>
         </Dialog>
