@@ -4,32 +4,21 @@ import { ChatCardHeader } from "@/components/ChatCard/chat-header";
 import { StoryChatForm } from "@/components/story-chat-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
-import { SYSTEM_PROMPT } from "@/constant";
-import { useChatSession } from "@/hooks/use-chat-session";
-import { useChatStorage } from "@/hooks/use-chat-storage";
-import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
-import { assistantMessage, Chat, systemMessage } from "@/models/chat";
-import { ChatCollection } from "@/models/chat-collection";
-import { parseResponse } from "@/utils";
+import { useCurrentChatStorage } from "@/hooks/use-current-chat-storage";
 import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
 import { BotMessageSquareIcon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { v4 } from "uuid";
 
 interface ChatCardProps {
 }
 
 export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { chatUid } = useParams();
-    const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-    const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
-    const [chatState, setChatState] = useChatStorage();
-    const { chatSession, resetChatSession, updateChatSession, handleChatStory, handleRegenerate, handleChatTitle } = useChatSession([systemMessage(SYSTEM_PROMPT)]);
-    const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
-
     const historyRef = useRef<HTMLDivElement>(null);
+    const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate } = useCurrentChatStorage(historyRef);
+
     const abortControllerRef = useRef<AbortController | null>(null);
 
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -39,9 +28,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     };
 
     const handleNewChatSession = () => {
-        resetChatSession();
-        setSelectedChat(null);
-        setCurrentChatCollectionId("unorganized");
+        resetCurrentChatSession();
     }
 
     const handleStopChat = () => {
@@ -52,93 +39,11 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         }
     };
 
-    const scrollToBottom = useCallback(() => {
-        if (historyRef.current) {
-            historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
-        }
-    }, []);
-
     useEffect(() => {
-        scrollToBottom();
-
-        if (!chatSession.currentResponse) return;
-
-        const parsed = parseResponse(chatSession.currentResponse);
-        if (parsed) {
-            updateChatSession({
-                thinking: parsed.thinking,
-                responseResult: parsed.response,
-                isThinking: parsed.isThinking
-            });
+        if (chatUid) {
+            setCurrentChatUid(chatUid);
         }
-
-        if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'user') {
-            // AI 回應完畢, 儲存 AI 的完整回應
-            const newAssistantMessage = assistantMessage(chatSession.currentResponse);
-            const newMessages = [...chatSession.messages, newAssistantMessage];
-            updateChatSession({ messages: newMessages });
-
-            // 給予對話標題
-            if (!chatSession.title && !chatSession.isTitleStreaming) {
-                handleChatTitle()
-            }
-        }
-    }, [chatSession.messages, chatSession.currentResponse, chatSession.isStreaming, chatSession.isTitleStreaming, chatSession.title]);
-
-    useEffect(() => {
-        if (!chatSession.titleResponse) return;
-        const parsed = parseResponse(chatSession.titleResponse);
-        if (parsed) {
-            updateChatSession({ title: parsed.title });
-        }
-    }, [chatSession.titleResponse]);
-
-    useEffect(() => {
-        if (chatSession.title && !chatSession.isTitleStreaming) {
-            setSelectedChat((prev) => prev ? { ...prev, title: chatSession.title } : new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title }));
-        }
-    }, [chatSession.title, chatSession.isTitleStreaming]);
-
-    useEffect(() => {
-        if (chatSession.messages.some(mes => mes.role === 'user')) {
-            setSelectedChat((prev) => prev ? { ...prev, messages: chatSession.messages } : new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title }));
-        }
-    }, [chatSession.messages, chatSession.title]);
-
-    useEffect(() => {
-        const unorganizedChat = chatState.unorganizedStories.find(chat => chat.uid === chatUid);
-        const foundCollection = chatState.collections.find(col => col.chats.some(chat => chat.uid === chatUid));
-        const foundChat = foundCollection?.chats.find(chat => chat.uid === chatUid) || unorganizedChat;
-        if (foundChat && (selectedChat?.uid !== foundChat.uid)) {
-            setSelectedChat(foundChat);
-            setCurrentChatCollectionId(foundCollection?.id ?? "unorganized");
-            updateChatSession({
-                title: foundChat.title ?? '',
-                messages: foundChat.messages ?? [systemMessage(SYSTEM_PROMPT)]
-            });
-        }
-    }, [chatUid, chatState, selectedChat]);
-
-    useEffect(() => {
-        if (!selectedChat) return;
-        let chatCollection: ChatCollection = { id: "", name: "unorganized", chats: [] };
-        let chatCollectionChats = chatState.unorganizedStories;
-        if (currentChatCollectionId !== "unorganized") {
-            const collection = chatState.collections.find((col) => col.id === currentChatCollectionId);
-            if (collection) {
-                chatCollection = collection;
-                chatCollectionChats = collection.chats;
-            }
-        }
-        const otherCollections = chatState.collections.filter((col) => col.id !== currentChatCollectionId) || [];
-        const otherChats = chatCollectionChats.filter(chat => chat.uid !== selectedChat?.uid);
-        const updatedChats = [...otherChats, selectedChat];
-        const updatedChatState = currentChatCollectionId === "unorganized"
-            ? { ...chatState, unorganizedStories: updatedChats }
-            : { ...chatState, collections: [...otherCollections, { ...chatCollection, chats: updatedChats }] };
-
-        setChatState(updatedChatState);
-    }, [selectedChat, currentChatCollectionId]);
+    }, [chatUid])
 
     return (
         <AnimatePresence>
@@ -163,9 +68,6 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                     <Card className="w-full h-full bg-slate-50 shadow-lg">
                         <ChatCardHeader
                             chatSession={chatSession}
-                            currentStoryCollectionId={currentStoryCollectionId}
-                            currentStoryCollection={currentStoryCollection}
-                            selectedStory={selectedStory}
                             toggleCollapse={toggleCollapse}
                             handleNewChatSession={handleNewChatSession} />
                         <ChatContent

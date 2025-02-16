@@ -2,20 +2,17 @@ import { ThinkingDots } from "@/components/thinking-dots"
 import { Button } from "@/components/ui/button"
 import { CardHeader } from "@/components/ui/card"
 import { ChatSessionState } from "@/hooks/use-chat-session"
-import { Story } from "@/models/story"
-import { StoryCollection } from "@/models/story-collection"
+import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage"
 import { ChevronDownIcon, LucidePencilLine } from "lucide-react"
 
 interface ChatCardHeaderProps {
     chatSession: ChatSessionState
     toggleCollapse: () => void
     handleNewChatSession: () => void
-    currentStoryCollectionId: string | null
-    currentStoryCollection: StoryCollection | null
-    selectedStory?: Story | null
 }
 
-export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, toggleCollapse, handleNewChatSession, currentStoryCollectionId, currentStoryCollection, selectedStory }) => {
+export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, toggleCollapse, handleNewChatSession }) => {
+    const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
     return (
         <CardHeader className="h-8 flex flex-row items-center px-3 py-1 space-y-0 bg-slate-200 rounded-tl-lg rounded-tr-lg">
             <Button variant='ghost' className="px-2 py-0 h-full" title="新對話" onClick={handleNewChatSession}>

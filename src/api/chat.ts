@@ -28,7 +28,10 @@ export const handleChat = async (
   streamingCallback?:
     | Dispatch<SetStateAction<boolean>>
     | ((value: boolean) => void),
-  responseCallback?:
+  setResponseCallback?:
+    | Dispatch<SetStateAction<string>>
+    | ((value: string) => void),
+  appendResponseCallback?:
     | Dispatch<SetStateAction<string>>
     | ((value: string) => void),
   toastCallback?: (props: any) => {},
@@ -38,8 +41,8 @@ export const handleChat = async (
     if (streamingCallback) {
       streamingCallback(true);
     }
-    if (responseCallback) {
-      responseCallback("");
+    if (setResponseCallback) {
+      setResponseCallback("");
     }
 
     // Create new AbortController
@@ -75,8 +78,8 @@ export const handleChat = async (
         try {
           const parsedLine = JSON.parse(line);
           if (parsedLine.message?.content) {
-            if (responseCallback) {
-              responseCallback(parsedLine.message.content);
+            if (appendResponseCallback) {
+              appendResponseCallback(parsedLine.message.content);
             }
           }
         } catch (e) {

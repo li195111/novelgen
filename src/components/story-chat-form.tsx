@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatSessionState } from "@/hooks/use-chat-session";
+import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SendIcon, StopCircle } from "lucide-react";
@@ -21,6 +22,8 @@ interface StoryChatFormProps {
 }
 
 export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, handleSubmit }) => {
+    const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
+
     const chatMessageRef = useRef<HTMLTextAreaElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
 
@@ -67,7 +70,14 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         </FormItem>
                     )}
                 />
-                <div className="flex w-full justify-end">
+                <div className="flex w-full justify-between items-center">
+                    <Button
+                        variant="ghost"
+                        className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                        disabled={!selectedStory}
+                    >
+                        產生故事建議
+                    </Button>
                     <Button
                         type="submit"
                         className="w-9 rounded-full"
