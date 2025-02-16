@@ -17,7 +17,6 @@ import {
     SidebarMenuButton
 } from "@/components/ui/sidebar";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
-import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
 import { StoryCollection } from "@/models/story-collection";
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
@@ -25,98 +24,32 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ChevronDown, MoreHorizontal, PenLineIcon, PlusCircleIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { Link } from 'react-router-dom';
-import { v4 } from 'uuid';
 
 export function AppSidebar() {
-    const { toast } = useToast();
-    const { storyState, setStoryState, selectedStory, setSelectedStory, currentStoryCollection, setCurrentStoryCollection } = useCurrentStoryStorage();
+    const { storyState, setStoryState, selectedStory, setCurrentStoryUid, currentStoryCollection, setCurrentStoryCollection, handleAddStoryCollection, handleDeleteSelectedStory, handleDeleteCurrentStoryCollection } = useCurrentStoryStorage();
     const [deleteCollectionAlertOpen, setDeleteCollectionAlertOpen] = useState(false);
     const [deleteStoryAlertOpen, setDeleteStoryAlertOpen] = useState(false);
 
-    const generateUniqueId = () => `col-${v4().replace(/-/g, '')}`;
-
-    const handleAddCollection = () => {
-        const newCollection: StoryCollection = {
-            id: generateUniqueId(),
-            name: `故事集 ${storyState.collections.length + 1}`,
-            stories: []
-        };
-
-        setStoryState(prev => ({
-            ...prev,
-            collections: [...prev.collections, newCollection]
-        }));
+    const onAddStoryCollectionClick = () => {
+        handleAddStoryCollection();
     };
 
-    const handleDeleteCollection = (collection: StoryCollection) => {
+    const onDeleteStoryCollectionClick = (collection: StoryCollection) => {
         setCurrentStoryCollection(collection);
         setDeleteCollectionAlertOpen(true);
     };
 
     const onDeleteCollection = () => {
-        setStoryState(prev => {
-            const collection = prev.collections.find(c => c.id === currentStoryCollection?.id);
-            if (!collection) return prev;
-
-            return {
-                ...prev,
-                // 將被刪除集合中的故事移至未分類區域
-                unorganizedStories: [...prev.unorganizedStories, ...collection.stories],
-                // 從集合列表中移除該集合
-                collections: prev.collections.filter(c => c.id !== currentStoryCollection?.id)
-            };
-        });
-        toast({
-            title: `已刪除故事集 ${currentStoryCollection?.name}`,
-            duration: 2000,
-        })
+        handleDeleteCurrentStoryCollection();
     }
 
     const handleDeleteStory = (story: Story) => {
-        setSelectedStory(story);
+        setCurrentStoryUid(story.uid);
         setDeleteStoryAlertOpen(true);
     };
 
     const onDeleteStory = () => {
-        if (!selectedStory) return;
-        setStoryState((prev) => {
-            let story = null;
-            let otherStories: Story[] = [];
-            let collectionId = "unorganized";
-            let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
-            let otherCollections: StoryCollection[] = [];
-            const foundUnorganizedStory = prev.unorganizedStories.find((story) => story.uid === selectedStory.uid);
-            if (!foundUnorganizedStory) {
-                const foundCollection = storyState.collections.find((collection) =>
-                    collection.stories.some((story) => story.uid === selectedStory.uid)
-                );
-                if (foundCollection) {
-                    storyCollection = foundCollection;
-                    collectionId = foundCollection.id;
-                    otherCollections = prev.collections.filter((col) => col.id !== collectionId) || [];
-                    story = foundCollection.stories.find((story) => story.uid === selectedStory.uid)!;
-                    otherStories = foundCollection.stories.filter((story) => story.uid !== selectedStory.uid);
-                }
-            }
-            else {
-                story = foundUnorganizedStory;
-                otherStories = prev.unorganizedStories.filter((story) => story.uid !== selectedStory.uid);
-            }
-            if (story) {
-                toast({
-                    title: `已刪除故事 ${story.title}`,
-                    duration: 2000,
-                })
-                if (collectionId === "unorganized") {
-                    return { ...prev, unorganizedStories: [...otherStories] };
-                }
-                else {
-                    return { ...prev, collections: [...otherCollections, { ...storyCollection, stories: [...otherStories] }] };
-                }
-            }
-            return prev;
-        })
-        setSelectedStory(null);
+        handleDeleteSelectedStory();
     };
 
     const handleDragEnd = (result: DropResult): void => {
@@ -197,7 +130,7 @@ export function AppSidebar() {
                     <SidebarGroupLabel>
                         故事
                     </SidebarGroupLabel>
-                    <SidebarGroupAction onClick={handleAddCollection} title="新增故事集">
+                    <SidebarGroupAction onClick={onAddStoryCollectionClick} title="新增故事集">
                         <PlusCircleIcon className="w-4 h-4" />
                     </SidebarGroupAction>
                     <DragDropContext onDragEnd={handleDragEnd}>
@@ -238,7 +171,7 @@ export function AppSidebar() {
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         className="flex h-8 justify-start m-1 rounded cursor-pointer hover:bg-slate-300 hover:text-destructive"
-                                                        onClick={() => handleDeleteCollection(collection)}
+                                                        onClick={() => onDeleteStoryCollectionClick(collection)}
                                                     >
                                                         <Label className="flex items-center px-1 cursor-pointer hover:text-destructive">
                                                             <Trash2Icon className="mr-2 h-4 w-4" />
@@ -268,7 +201,7 @@ export function AppSidebar() {
                         <Droppable droppableId="unorganized">
                             {(provided) => (
                                 <SidebarGroupContent
-                                    className="py-1 rounded-sm hover:bg-slate-200 focus:bg-slate-200"
+                                    className="py-0 rounded-sm hover:bg-slate-200 focus:bg-slate-200"
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
                                 >

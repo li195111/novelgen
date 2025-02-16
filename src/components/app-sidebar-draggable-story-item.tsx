@@ -5,6 +5,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem
 } from "@/components/ui/sidebar";
+import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { Story } from "@/models/story";
 import { Draggable } from '@hello-pangea/dnd';
 import { GripVertical, MoreHorizontal, Trash2Icon } from "lucide-react";
@@ -18,6 +19,7 @@ interface DraggableStoryItemProps {
 }
 
 export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index, onDelete }) => {
+    const { selectedStory } = useCurrentStoryStorage();
     return (
         <Draggable
             key={`story-${story.uid}`}
@@ -28,7 +30,11 @@ export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index, 
                 <SidebarMenuItem
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    className={`list-none ${snapshot.isDragging ? 'opacity-50' : ''}`}
+                    className={[
+                        'list-none',
+                        `${snapshot.isDragging ? 'opacity-50' : ''}`,
+                        `${story.uid === selectedStory?.uid ? 'bg-slate-200' : ''}`
+                    ].join(' ')}
                 >
                     <div className="flex items-center w-full">
                         <div
