@@ -40,9 +40,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     };
 
     useEffect(() => {
-        if (chatUid) {
-            setCurrentChatUid(chatUid);
-        }
+        setCurrentChatUid(chatUid ?? "");
     }, [chatUid])
 
     return (

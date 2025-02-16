@@ -1,7 +1,6 @@
 import { SYSTEM_PROMPT } from "@/constant";
 import { useChatSession } from "@/hooks/use-chat-session";
 import { useChatStorage } from "@/hooks/use-chat-storage";
-import { useLocalStorage } from "@/hooks/use-storage";
 import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection } from "@/models/chat-collection";
 import { useEffect, useState } from "react";
@@ -9,15 +8,17 @@ import { v4 } from "uuid";
 
 export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     const [chatState, setChatState] = useChatStorage();
-    const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', '');
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
-    const { chatSession, updateChatSession, resetChatSession, handleChatStory, handleRegenerate, handleChatTitle } = useChatSession([systemMessage(SYSTEM_PROMPT)], historyRef);
+    const { chatSession, updateChatSession, resetChatSession, handleChatStory, handleRegenerate, handleChatTitle,
+        currentChatUid, setCurrentChatUid
+    } = useChatSession([systemMessage(SYSTEM_PROMPT)], historyRef);
 
     const resetCurrentChatSession = () => {
         resetChatSession();
         setSelectedChat(null);
         setCurrentChatCollectionId("unorganized");
+        setCurrentChatUid("");
     }
 
     useEffect(() => {

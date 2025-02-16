@@ -6,6 +6,8 @@ import { assistantMessage, ChatMessage, systemMessage, userMessage } from "@/mod
 import { parseResponse } from "@/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import { useLocalStorage } from "./use-storage";
+import { v4 } from "uuid";
 
 export interface ChatSessionState {
     messages: ChatMessage[];
@@ -21,6 +23,7 @@ export interface ChatSessionState {
 
 export const useChatSession = (initialMessages: ChatMessage[], historyRef?: React.RefObject<any>) => {
     const { toast } = useToast();
+    const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', '');
     const abortControllerRef = useRef<AbortController | null>(null);
     const [chatSession, setChatSession] = useState<ChatSessionState>({
         messages: initialMessages,
@@ -78,6 +81,7 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
         const userChatMessage = userMessage(values.chatMessage);
         const newMessages = [...chatSession.messages, userChatMessage];
         updateChatSession({ messages: newMessages });
+        setCurrentChatUid(v4());
         handleChat(newMessages, "與 AI 對話時發生錯誤",
             (isStreaming: boolean) => updateChatSession({ isStreaming }),
             updateCurrentResponse,
@@ -166,5 +170,6 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
         handleRegenerate,
         handleChatTitle,
         updateChatSession,
+        currentChatUid, setCurrentChatUid,
     };
 };

@@ -53,9 +53,7 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     }
 
     useEffect(() => {
-        if (storyUid) {
-            setCurrentStoryUid(storyUid);
-        }
+        setCurrentStoryUid(storyUid ?? "");
     }, [storyUid]);
 
     return (
