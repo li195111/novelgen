@@ -123,8 +123,11 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
     }
 
     const handleStorySuggestion = async (values: z.infer<typeof StoryChatSchema>) => {
-        const conversationContent = `${STORY_GENERATOR_SYSTEM_PROMPT}<story>${values.chatMessage}</story>`;
-        const genStorySuggestionMessages = [...chatSession.messages, userMessage(conversationContent)];
+        const conversationContent = `<story>${values.chatMessage}</story>`;
+        const genStorySuggestionMessages = [
+            systemMessage(SYSTEM_PROMPT + STORY_GENERATOR_SYSTEM_PROMPT),
+            userMessage(conversationContent),
+        ];
         updateChatSession({ messages: genStorySuggestionMessages });
         setCurrentChatUid(v4());
         handleChat(genStorySuggestionMessages, "AI 產生建議時發生錯誤",
@@ -176,6 +179,10 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
             updateChatSession({ title: parsed.title });
         }
     }, [chatSession.titleResponse]);
+
+    useEffect(() => {
+        console.debug("chatSession.messages", chatSession.messages);
+    }, [chatSession.messages])
 
     return {
         chatSession,

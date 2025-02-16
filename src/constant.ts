@@ -16,8 +16,8 @@ export const TITLE_GENERATOR_SYSTEM_PROMPT = `
 `;
 
 export const STORY_GENERATOR_SYSTEM_PROMPT = `
-* 嚴格遵守根據以下<story></story>中的資訊來產生故事資訊建議。
-* 嚴格遵守在回覆前以XML格式來回應query。
+* 嚴格遵守在回覆前以<suggestion></suggestion>來根據query中<story></story>的資訊提供故事建議。
+* 嚴格遵守除非用戶提問，否則不用提供額外的故事資訊。
 `;
 
 export const DARK_MODE_SYSTEM_PROMPT = `
