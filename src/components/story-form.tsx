@@ -42,6 +42,7 @@ interface StoryFormProps {
 export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit }) => {
     const { toast } = useToast();
 
+    const [tagList, setTagList] = useState<string[]>(defaultStory?.tags ?? []);
     const [characterList, setCharacterList] = useState<Character[]>(defaultStory?.characters ?? []);
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
     const [isAddCharacterDialogOpen, setIsAddCharacterDialogOpen] = useState(false);
@@ -127,6 +128,10 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
     }
 
     useEffect(() => {
+        storyForm.setValue("tags", tagList);
+    }, [tagList])
+
+    useEffect(() => {
         storyForm.setValue("scenes", sceneList);
     }, [sceneList]);
 
@@ -138,6 +143,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
         if (!defaultStory) {
             storyForm.reset();
             storyForm.clearErrors();
+            setTagList([]);
             setCharacterList([]);
             setSceneList([]);
             storyForm.setValue("uid", v4());
@@ -150,6 +156,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
             storyForm.clearErrors();
             storyForm.setValue("uid", defaultStory.uid);
             storyForm.setValue("title", defaultStory.title);
+            setTagList(defaultStory.tags);
             setCharacterList(defaultStory.characters);
             setSceneList(defaultStory.scenes);
             storyForm.setValue("outline", defaultStory.outline);
@@ -190,8 +197,6 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                     control={storyForm.control}
                     name="tags"
                     render={({ field }) => {
-                        const tags = field.value || [];
-
                         const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
                             const input = e.target as HTMLInputElement;
                             const value = input.value;
@@ -201,17 +206,17 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                                 e.preventDefault();
                                 // 移除可能的逗號
                                 const newTag = value.replace(/,/g, '').trim();
-                                if (newTag && !tags.includes(newTag)) {
-                                    const newTags = [...tags, newTag];
-                                    field.onChange(newTags);
+                                if (newTag && !tagList.includes(newTag)) {
+                                    const newTags = [...tagList, newTag];
+                                    setTagList(newTags);
                                 }
                                 input.value = '';
                             }
                         };
 
                         const removeTag = (tagToRemove: string) => {
-                            const newTags = tags.filter(tag => tag !== tagToRemove);
-                            field.onChange(newTags);
+                            const newTags = tagList.filter(tag => tag !== tagToRemove);
+                            setTagList(newTags);
                         };
 
                         return (
@@ -219,7 +224,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                                 <FormControl>
                                     <div className="space-y-2">
                                         <div className="flex flex-wrap gap-2">
-                                            {tags.map((tag, _) => (
+                                            {tagList.map((tag, _) => (
                                                 <Badge
                                                     key={`tag-${v4()}`}
                                                     variant="secondary"
@@ -265,6 +270,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                 <div className="flex items-center space-x-1">
                     <Label>角色</Label>
                     <Button
+                        type="button"
                         variant="ghost"
                         className="p-1 h-6 w-6"
                         onClick={() => setIsAddCharacterDialogOpen(true)}
@@ -275,6 +281,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                 <div className="flex space-x-2">
                     {characterList.map((character, _) => (
                         <Button
+                            type="button"
                             variant="ghost"
                             key={`characters-${v4()}`}
                             onClick={() => handleEditCharacterClick(character)}

@@ -10,7 +10,8 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     const [chatState, setChatState] = useChatStorage();
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
-    const { chatSession, updateChatSession, resetChatSession, handleChatStory, handleRegenerate, handleChatTitle,
+    const { chatSession, updateChatSession, resetChatSession,
+        handleChatStory, handleRegenerate, handleChatTitle, handleStorySuggestion,
         currentChatUid, setCurrentChatUid
     } = useChatSession([systemMessage(SYSTEM_PROMPT)], historyRef);
 
@@ -71,7 +72,7 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     return {
         chatSession,
         resetCurrentChatSession, updateChatSession,
-        handleChatStory, handleRegenerate, handleChatTitle,
+        handleChatStory, handleRegenerate, handleChatTitle, handleStorySuggestion,
         chatState, setChatState,
         currentChatUid, setCurrentChatUid,
         selectedChat, setSelectedChat,

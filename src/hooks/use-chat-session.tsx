@@ -1,13 +1,13 @@
 import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
-import { SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/constant";
+import { STORY_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { parseResponse } from "@/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { v4 } from "uuid";
 import { z } from "zod";
 import { useLocalStorage } from "./use-storage";
-import { v4 } from "uuid";
 
 export interface ChatSessionState {
     messages: ChatMessage[];
@@ -122,6 +122,20 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
         );
     }
 
+    const handleStorySuggestion = async (values: z.infer<typeof StoryChatSchema>) => {
+        const conversationContent = `${STORY_GENERATOR_SYSTEM_PROMPT}<story>${values.chatMessage}</story>`;
+        const genStorySuggestionMessages = [...chatSession.messages, userMessage(conversationContent)];
+        updateChatSession({ messages: genStorySuggestionMessages });
+        setCurrentChatUid(v4());
+        handleChat(genStorySuggestionMessages, "AI 產生建議時發生錯誤",
+            (isStreaming: boolean) => updateChatSession({ isStreaming }),
+            updateCurrentResponse,
+            appendCurrentResponse,
+            toast,
+            abortControllerRef
+        );
+    }
+
     const scrollToBottom = useCallback(() => {
         if (historyRef?.current) {
             historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
@@ -169,6 +183,7 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
         handleChatStory,
         handleRegenerate,
         handleChatTitle,
+        handleStorySuggestion,
         updateChatSession,
         currentChatUid, setCurrentChatUid,
     };

@@ -17,7 +17,7 @@ interface ChatCardProps {
 export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { chatUid } = useParams();
     const historyRef = useRef<HTMLDivElement>(null);
-    const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate } = useCurrentChatStorage(historyRef);
+    const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate, handleStorySuggestion } = useCurrentChatStorage(historyRef);
 
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -78,7 +78,9 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                             <StoryChatForm
                                 chatSession={chatSession}
                                 handleStop={handleStopChat}
-                                handleSubmit={handleChatStory} />
+                                handleSubmit={handleChatStory}
+                                handleStorySuggestion={handleStorySuggestion}
+                            />
                         </CardFooter>
                     </Card>
                 </motion.div>

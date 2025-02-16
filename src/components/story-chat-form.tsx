@@ -6,7 +6,7 @@ import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SendIcon, StopCircle } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,10 +19,12 @@ interface StoryChatFormProps {
     chatSession: ChatSessionState;
     handleStop?: () => void;
     handleSubmit: (values: any) => void;
+    handleStorySuggestion: (values: any) => void;
 }
 
-export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, handleSubmit }) => {
-    const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
+export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, handleSubmit, handleStorySuggestion }) => {
+    const { selectedStory } = useCurrentStoryStorage();
+    const [submitAction, setSubmitAction] = useState('normal');
 
     const chatMessageRef = useRef<HTMLTextAreaElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
@@ -50,8 +52,13 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
     return (
         <Form {...storyForm}>
             <form onSubmit={storyForm.handleSubmit((v) => {
-                handleSubmit(v);
+                if (submitAction === 'story-gen') {
+                    handleStorySuggestion(v);
+                } else {
+                    handleSubmit(v);
+                }
                 storyForm.reset();
+                setSubmitAction('normal');
             })} className="flex flex-col w-full space-y-1">
                 <FormField
                     control={storyForm.control}
@@ -72,9 +79,19 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                 />
                 <div className="flex w-full justify-between items-center">
                     <Button
+                        type="submit"
                         variant="ghost"
                         className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
                         disabled={!selectedStory}
+                        onClick={() => {
+                            setSubmitAction('story-gen');
+                            storyForm.setValue('chatMessage', `<title>${selectedStory?.title}</title>
+                                <tags>${JSON.stringify(selectedStory?.tags)}</tags>
+                                <characters>${JSON.stringify(selectedStory?.characters)}</characters>
+                                <scene>${JSON.stringify(selectedStory?.scenes)}</scene>
+                                <outline>${selectedStory?.outline}</outline>
+                                <currentScene>${selectedStory?.currentScene}</currentScene>`);
+                        }}
                     >
                         產生故事建議
                     </Button>
