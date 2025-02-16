@@ -16,7 +16,7 @@ import {
     SidebarHeader,
     SidebarMenuButton
 } from "@/components/ui/sidebar";
-import { useStoryStorage } from "@/hooks/use-story-storage";
+import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
 import { StoryCollection } from "@/models/story-collection";
@@ -29,12 +29,9 @@ import { v4 } from 'uuid';
 
 export function AppSidebar() {
     const { toast } = useToast();
-    const [storyState, setStoryState] = useStoryStorage();
-    const [selectedCollection, setSelectedCollection] = useState<StoryCollection | null>(null);
+    const { storyState, setStoryState, selectedStory, setSelectedStory, currentStoryCollection, setCurrentStoryCollection } = useCurrentStoryStorage();
     const [deleteCollectionAlertOpen, setDeleteCollectionAlertOpen] = useState(false);
-
     const [deleteStoryAlertOpen, setDeleteStoryAlertOpen] = useState(false);
-    const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
     const generateUniqueId = () => `col-${v4().replace(/-/g, '')}`;
 
@@ -52,13 +49,13 @@ export function AppSidebar() {
     };
 
     const handleDeleteCollection = (collection: StoryCollection) => {
-        setSelectedCollection(collection);
+        setCurrentStoryCollection(collection);
         setDeleteCollectionAlertOpen(true);
     };
 
     const onDeleteCollection = () => {
         setStoryState(prev => {
-            const collection = prev.collections.find(c => c.id === selectedCollection?.id);
+            const collection = prev.collections.find(c => c.id === currentStoryCollection?.id);
             if (!collection) return prev;
 
             return {
@@ -66,11 +63,11 @@ export function AppSidebar() {
                 // 將被刪除集合中的故事移至未分類區域
                 unorganizedStories: [...prev.unorganizedStories, ...collection.stories],
                 // 從集合列表中移除該集合
-                collections: prev.collections.filter(c => c.id !== selectedCollection?.id)
+                collections: prev.collections.filter(c => c.id !== currentStoryCollection?.id)
             };
         });
         toast({
-            title: `已刪除故事集 ${selectedCollection?.name}`,
+            title: `已刪除故事集 ${currentStoryCollection?.name}`,
             duration: 2000,
         })
     }
@@ -81,59 +78,45 @@ export function AppSidebar() {
     };
 
     const onDeleteStory = () => {
-        if (selectedStory) {
+        if (!selectedStory) return;
+        setStoryState((prev) => {
             let story = null;
+            let otherStories: Story[] = [];
             let collectionId = "unorganized";
-            const unorganizedStory = storyState.unorganizedStories.find((story) => story.uid === selectedStory.uid);
-            if (unorganizedStory) {
-                story = unorganizedStory;
+            let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
+            let otherCollections: StoryCollection[] = [];
+            const foundUnorganizedStory = prev.unorganizedStories.find((story) => story.uid === selectedStory.uid);
+            if (!foundUnorganizedStory) {
+                const foundCollection = storyState.collections.find((collection) =>
+                    collection.stories.some((story) => story.uid === selectedStory.uid)
+                );
+                if (foundCollection) {
+                    storyCollection = foundCollection;
+                    collectionId = foundCollection.id;
+                    otherCollections = prev.collections.filter((col) => col.id !== collectionId) || [];
+                    story = foundCollection.stories.find((story) => story.uid === selectedStory.uid)!;
+                    otherStories = foundCollection.stories.filter((story) => story.uid !== selectedStory.uid);
+                }
             }
-
-            storyState.collections.forEach((collection) => {
-                const findStory = collection.stories.find((story) => story.uid === selectedStory.uid);
-                if (findStory) {
-                    story = findStory;
-                    collectionId = collection.id;
-                }
-            })
-
+            else {
+                story = foundUnorganizedStory;
+                otherStories = prev.unorganizedStories.filter((story) => story.uid !== selectedStory.uid);
+            }
             if (story) {
-                let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
-                let storyCollectionStories = storyState.unorganizedStories;
-                if (collectionId !== "unorganized") {
-                    const collection = storyState.collections.find((col) => col.id === collectionId);
-                    if (collection) {
-                        storyCollection = collection;
-                        storyCollectionStories = collection.stories;
-                    }
-                }
-                let otherCollections = storyState.collections.filter((col) => col.id !== collectionId) || [];
-                const isNewStory = !storyCollectionStories.find((story) => story.uid === selectedStory.uid);
-                const otherStories = storyCollectionStories.filter((story) => story.uid !== selectedStory.uid);
-
-                if (collectionId === "unorganized") {
-                    setStoryState({
-                        ...storyState,
-                        unorganizedStories: [...otherStories],
-                    });
-                } else {
-                    setStoryState({
-                        ...storyState,
-                        collections: [
-                            ...otherCollections,
-                            {
-                                ...storyCollection,
-                                stories: [...otherStories]
-                            }
-                        ]
-                    })
-                }
                 toast({
                     title: `已刪除故事 ${story.title}`,
                     duration: 2000,
                 })
+                if (collectionId === "unorganized") {
+                    return { ...prev, unorganizedStories: [...otherStories] };
+                }
+                else {
+                    return { ...prev, collections: [...otherCollections, { ...storyCollection, stories: [...otherStories] }] };
+                }
             }
-        }
+            return prev;
+        })
+        setSelectedStory(null);
     };
 
     const handleDragEnd = (result: DropResult): void => {
@@ -183,7 +166,7 @@ export function AppSidebar() {
             <DeleteStoryCollectionAlertDialog
                 isOpen={deleteCollectionAlertOpen}
                 onClose={() => setDeleteCollectionAlertOpen(!deleteCollectionAlertOpen)}
-                selectedCollection={selectedCollection}
+                selectedCollection={currentStoryCollection}
                 onDelete={onDeleteCollection}
             />
             <DeleteStoryAlertDialog

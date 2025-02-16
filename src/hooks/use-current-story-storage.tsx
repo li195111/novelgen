@@ -12,52 +12,44 @@ export const useCurrentStoryStorage = () => {
     const [currentStoryCollection, setCurrentStoryCollection] = useState<StoryCollection | null>(null);
 
     useEffect(() => {
+        let story = null;
+        let collectionId = "unorganized";
+        let storyCollection: StoryCollection | null = null;
         if (currentStoryUid) {
-            let story = null;
-            let collectionId = "unorganized";
-            const unorganizedStory = storyState.unorganizedStories.find((story) => story.uid === currentStoryUid);
-            if (unorganizedStory) {
-                story = unorganizedStory;
-            }
-
-            storyState.collections.forEach((collection) => {
-                const findStory = collection.stories.find((story) => story.uid === currentStoryUid);
-                if (findStory) {
-                    story = findStory;
-                    collectionId = collection.id;
+            storyCollection = { id: "", name: "unorganized", stories: [] };
+            const foundUnorganizedStory = storyState.unorganizedStories.find((story) => story.uid === currentStoryUid);
+            if (!foundUnorganizedStory) {
+                const foundCollection = storyState.collections.find((collection) =>
+                    collection.stories.some((story) => story.uid === currentStoryUid)
+                );
+                if (foundCollection) {
+                    storyCollection = foundCollection;
+                    collectionId = foundCollection.id;
+                    story = foundCollection.stories.find((story) => story.uid === currentStoryUid)!;
                 }
-            })
+            }
+            else {
+                story = foundUnorganizedStory;
+            }
 
             if (story) {
                 setSelectedStory(story);
                 setCurrentStoryCollectionId(collectionId);
-                let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
-                let storyCollectionStories = storyState.unorganizedStories;
-                if (collectionId !== "unorganized") {
-                    const collection = storyState.collections.find((col) => col.id === collectionId);
-                    if (collection) {
-                        storyCollection = collection;
-                        storyCollectionStories = collection.stories;
-                    }
-                }
                 setCurrentStoryCollection(storyCollection);
             }
-
         }
         else {
-            setSelectedStory(null);
-            setCurrentStoryCollectionId("unorganized");
-            setCurrentStoryCollection(null);
+            setSelectedStory(story);
+            setCurrentStoryCollectionId(collectionId);
+            setCurrentStoryCollection(storyCollection);
         }
     }, [currentStoryUid, storyState]);
 
     return {
-        storyState,
-        setStoryState,
-        currentStoryUid,
-        setCurrentStoryUid,
-        selectedStory,
-        currentStoryCollectionId,
-        currentStoryCollection,
+        storyState, setStoryState,
+        selectedStory, setSelectedStory,
+        currentStoryUid, setCurrentStoryUid,
+        currentStoryCollectionId, setCurrentStoryCollectionId,
+        currentStoryCollection, setCurrentStoryCollection
     }
 }

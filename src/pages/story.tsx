@@ -50,6 +50,7 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
             });
             return currentStoryCollectionId === "unorganized" ? { ...prev, unorganizedStories: [...otherStories, saveStory] } : { ...prev, collections: [...otherCollections, { ...storyCollection, stories: [...otherStories, saveStory] }] };
         });
+        setCurrentStoryUid(saveStory.uid);
     }
 
     useEffect(() => {
