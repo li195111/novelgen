@@ -9,21 +9,21 @@ import {
 
 
 interface ThinkingAccordionProps {
-    thinking: string;
+    think: string;
     isStreaming: boolean;
 }
 
-const ThinkingAccordion: React.FC<ThinkingAccordionProps> = ({ thinking, isStreaming }) => {
+const ThinkingAccordion: React.FC<ThinkingAccordionProps> = ({ think, isStreaming }) => {
     return (
         <>
-            {(isStreaming || thinking) && (
+            {(isStreaming || think) && (
                 <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="thinking" className="border-none">
+                    <AccordionItem value="think" className="border-none">
                         <AccordionTrigger className="py-2 hover:no-underline">
                             <ThinkingDots />
                         </AccordionTrigger>
                         <AccordionContent>
-                            <ResponseBlock message={thinking} />
+                            <ResponseBlock message={think} />
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>

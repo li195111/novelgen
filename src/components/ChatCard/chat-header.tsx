@@ -26,7 +26,7 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, tog
                     {selectedStory && <span className="text-xs text-gray-500">{selectedStory.title}</span>}
                 </div>
                 <div className="flex flex-row space-x-1 items-center">
-                    {chatSession.title && <span className="text-xs text-gray-500">{chatSession.title}</span>}
+                    {chatSession.title && <span className="text-xs text-gray-500">{chatSession.title.slice(0, 20)}</span>}
                     {!chatSession.title && chatSession.isTitleStreaming && <ThinkingDots />}
                 </div>
             </div>

@@ -29,8 +29,8 @@ export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSessio
             {/* 當前串流回應 */}
             {chatSession.isStreaming && (
                 <div className="flex flex-col w-full justify-start px-4">
-                    {chatSession.isThinking && <ThinkingAccordion thinking={chatSession.thinking} isStreaming={chatSession.isStreaming} />}
-                    {!chatSession.isThinking && <ThinkAccordion think={chatSession.thinking} />}
+                    {chatSession.isThinking && <ThinkingAccordion think={chatSession.think} isStreaming={chatSession.isStreaming} />}
+                    {!chatSession.isThinking && <ThinkAccordion think={chatSession.think} />}
                     <ResponseBlock message={chatSession.responseResult} />
                 </div>
             )}

@@ -1,7 +1,7 @@
 import "@/App.css";
 import { ChatContent } from "@/components/ChatCard/chat-content";
 import { ChatCardHeader } from "@/components/ChatCard/chat-header";
-import { StoryChatForm } from "@/components/story-chat-form";
+import { StoryChatForm, StoryChatSchema } from "@/components/story-chat-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
 import { useCurrentChatStorage } from "@/hooks/use-current-chat-storage";
@@ -10,6 +10,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BotMessageSquareIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { TypeOf } from "zod";
+
+export enum SubmitAction {
+    normal = 'normal',
+    storySuggestion = 'story-suggestion'
+}
 
 interface ChatCardProps {
 }
@@ -18,6 +24,10 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { chatUid } = useParams();
     const historyRef = useRef<HTMLDivElement>(null);
     const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate, handleStorySuggestion } = useCurrentChatStorage(historyRef);
+    const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>) => Promise<void> }>({
+        'normal': handleChatStory,
+        'story-suggestion': handleStorySuggestion
+    });
 
     const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -78,8 +88,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                             <StoryChatForm
                                 chatSession={chatSession}
                                 handleStop={handleStopChat}
-                                handleSubmit={handleChatStory}
-                                handleStorySuggestion={handleStorySuggestion}
+                                submitMap={submitMap}
                             />
                         </CardFooter>
                     </Card>

@@ -13,7 +13,7 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     const { chatSession, updateChatSession, resetChatSession,
         handleChatStory, handleRegenerate, handleChatTitle, handleStorySuggestion,
         currentChatUid, setCurrentChatUid
-    } = useChatSession([systemMessage(SYSTEM_PROMPT)], historyRef);
+    } = useChatSession([systemMessage(SYSTEM_PROMPT)], selectedChat, historyRef);
 
     const resetCurrentChatSession = () => {
         resetChatSession();
@@ -22,15 +22,26 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
         setCurrentChatUid("");
     }
 
+    const updateSelectedChat = async (update: Partial<Chat>) => {
+        const selectedChat: Chat = await new Promise((resolve) => {
+            setSelectedChat((prev) => {
+                resolve(prev ? { ...prev, ...update } : new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title }))
+                return prev;
+            });
+        })
+        setSelectedChat(selectedChat);
+        setCurrentChatUid(selectedChat.uid);
+    }
+
     useEffect(() => {
         if (chatSession.title && !chatSession.isTitleStreaming) {
-            setSelectedChat((prev) => prev ? { ...prev, title: chatSession.title } : new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title }));
+            updateSelectedChat({ title: chatSession.title });
         }
     }, [chatSession.title, chatSession.isTitleStreaming]);
 
     useEffect(() => {
         if (chatSession.messages.some(mes => mes.role === 'user')) {
-            setSelectedChat((prev) => prev ? { ...prev, messages: chatSession.messages } : new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title }));
+            updateSelectedChat({ messages: chatSession.messages });
         }
     }, [chatSession.messages, chatSession.title]);
 

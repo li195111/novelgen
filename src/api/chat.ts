@@ -25,9 +25,6 @@ export const handleOllamaChat = async (
 export const handleChat = async (
   messages: ChatMessage[],
   errorDescription: string,
-  streamingCallback?:
-    | Dispatch<SetStateAction<boolean>>
-    | ((value: boolean) => void),
   setResponseCallback?:
     | Dispatch<SetStateAction<string>>
     | ((value: string) => void),
@@ -38,9 +35,6 @@ export const handleChat = async (
   abortControllerRef?: React.MutableRefObject<AbortController | null>
 ) => {
   try {
-    if (streamingCallback) {
-      streamingCallback(true);
-    }
     if (setResponseCallback) {
       setResponseCallback("");
     }
@@ -98,9 +92,6 @@ export const handleChat = async (
       });
     }
   } finally {
-    if (streamingCallback) {
-      streamingCallback(false);
-    }
     if (abortControllerRef) {
       abortControllerRef.current = null;
     }

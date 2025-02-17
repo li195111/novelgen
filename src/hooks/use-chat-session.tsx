@@ -2,36 +2,38 @@ import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
 import { STORY_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
-import { assistantMessage, ChatMessage, systemMessage, userMessage } from "@/models/chat";
+import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { parseResponse } from "@/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { v4 } from "uuid";
 import { z } from "zod";
 import { useLocalStorage } from "./use-storage";
 
 export interface ChatSessionState {
+    uid: string;
     messages: ChatMessage[];
     currentResponse: string;
     isStreaming: boolean;
-    thinking: string;
+    think: string;
     isThinking: boolean;
     title: string;
     titleResponse: string;
     isTitleStreaming: boolean;
     responseResult: string;
+    [key: string]: any;
 }
 
-export const useChatSession = (initialMessages: ChatMessage[], historyRef?: React.RefObject<any>) => {
+export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Chat | null, historyRef?: React.RefObject<any>) => {
     const { toast } = useToast();
-    const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', '');
+    const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', selectedChat?.uid ?? '');
     const abortControllerRef = useRef<AbortController | null>(null);
     const [chatSession, setChatSession] = useState<ChatSessionState>({
-        messages: initialMessages,
+        uid: currentChatUid,
+        messages: selectedChat?.messages ?? initialMessages,
         currentResponse: '',
         isStreaming: false,
-        thinking: '',
+        think: '',
         isThinking: false,
-        title: '',
+        title: selectedChat?.title ?? '',
         titleResponse: '',
         isTitleStreaming: false,
         responseResult: '',
@@ -39,10 +41,11 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
 
     const resetChatSession = () => {
         setChatSession({
+            uid: '',
             messages: initialMessages,
             currentResponse: '',
             isStreaming: false,
-            thinking: '',
+            think: '',
             isThinking: false,
             title: '',
             titleResponse: '',
@@ -55,88 +58,113 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
         setChatSession((prev) => ({ ...prev, ...updates }));
     };
 
-    const updateCurrentResponse = (text: string) => {
-        setChatSession((prev) => ({ ...prev, currentResponse: text }));
-    }
-
-    const appendCurrentResponse = (text: string) => {
-        setChatSession((prev) => ({
-            ...prev,
-            currentResponse: prev.currentResponse + text,
-        }));
+    const appendChatSession = async (message: ChatMessage[] | ChatMessage, updateSystem?: ChatMessage): Promise<ChatMessage[]> => {
+        if (!Array.isArray(message)) {
+            message = [message];
+        }
+        const newMessages: ChatMessage[] = await new Promise((resolve) => {
+            setChatSession((prev) => {
+                if (updateSystem) {
+                    resolve([updateSystem, ...prev.messages.splice(1), ...message]);
+                } else {
+                    resolve([...prev.messages, ...message]);
+                }
+                return prev;
+            });
+        });
+        updateChatSession({ messages: newMessages });
+        return newMessages;
     };
 
-    const updateTitleResponse = (text: string) => {
-        setChatSession((prev) => ({ ...prev, titleResponse: text }));
+    const appendAssistantMessage = () => {
+        setChatSession((prev) => {
+            return {
+                ...prev,
+                messages: [...prev.messages, assistantMessage(prev.currentResponse)],
+            };
+        });
     }
 
-    const appendTitleResponse = (text: string) => {
+    const sliceToChatSession = async (messageUid?: string): Promise<ChatMessage[]> => {
+        const newMessages: ChatMessage[] = await new Promise((resolve) => {
+            setChatSession((prev) => {
+                if (prev.messages.length < 2) {
+                    resolve(prev.messages);
+                }
+                let newMessages = prev.messages;
+                let toUid = undefined;
+                if (messageUid) {
+                    toUid = prev.messages.findIndex(mes => mes.uid === messageUid);
+                    newMessages = prev.messages.slice(0, toUid);
+                }
+                resolve(newMessages);
+                return prev;
+            });
+        });
+        updateChatSession({ messages: newMessages });
+        return newMessages;
+    }
+
+    const appendChatResponse = (key: string, text: string) => {
         setChatSession((prev) => ({
             ...prev,
-            titleResponse: prev.titleResponse + text,
+            [key]: prev[key] + text,
         }));
     }
 
     const handleChatStory = async (values: z.infer<typeof StoryChatSchema>) => {
-        const userChatMessage = userMessage(values.chatMessage);
-        const newMessages = [...chatSession.messages, userChatMessage];
-        updateChatSession({ messages: newMessages });
-        setCurrentChatUid(v4());
-        handleChat(newMessages, "與 AI 對話時發生錯誤",
-            (isStreaming: boolean) => updateChatSession({ isStreaming }),
-            updateCurrentResponse,
-            appendCurrentResponse,
+        updateChatSession({ isStreaming: true });
+        const newMessages = await appendChatSession(userMessage(values.chatMessage));
+        await handleChat(newMessages, "與 AI 對話時發生錯誤",
+            (text: string) => updateChatSession({ currentResponse: text }),
+            (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef
         );
+        updateChatSession({ isStreaming: false });
     }
 
     const handleRegenerate = async (messageUid?: string) => {
-        if (chatSession.messages.length < 2) return;
-        let toUid = -1;
-        if (messageUid) {
-            toUid = chatSession.messages.findIndex(mes => mes.uid === messageUid);
-        }
-        const newMessages = chatSession.messages.slice(0, toUid);
-        updateChatSession({ messages: newMessages });
-        handleChat(newMessages, "重新產生對話時發生錯誤",
-            (isStreaming: boolean) => updateChatSession({ isStreaming }),
-            updateCurrentResponse,
-            appendCurrentResponse,
+        updateChatSession({ isStreaming: true });
+        const newMessages = await sliceToChatSession(messageUid);
+        await handleChat(newMessages, "重新產生對話時發生錯誤",
+            (text: string) => updateChatSession({ currentResponse: text }),
+            (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef
         );
+        updateChatSession({ isStreaming: false });
     };
 
     const handleChatTitle = async () => {
+        updateChatSession({ isTitleStreaming: true });
         const conversationContent = `<query>${JSON.stringify(chatSession.messages.filter(mes => mes.role === 'user').map(mes => mes.content))}</query>`;
         const genChatTitleMessages = [
             systemMessage(SYSTEM_PROMPT + TITLE_GENERATOR_SYSTEM_PROMPT),
             userMessage(conversationContent),
         ]
-        handleChat(genChatTitleMessages, "讓 AI 產生對話Title時發生錯誤",
-            (isTitleStreaming: boolean) => updateChatSession({ isTitleStreaming }),
-            updateTitleResponse,
-            appendTitleResponse,
+        await handleChat(genChatTitleMessages, "讓 AI 產生對話Title時發生錯誤",
+            (text: string) => updateChatSession({ titleResponse: text }),
+            (text: string) => appendChatResponse('titleResponse', text),
             toast
         );
+        updateChatSession({ isTitleStreaming: false });
     }
 
     const handleStorySuggestion = async (values: z.infer<typeof StoryChatSchema>) => {
-        const conversationContent = `<story>${values.chatMessage}</story>`;
-        const genStorySuggestionMessages = [
-            systemMessage(SYSTEM_PROMPT + STORY_GENERATOR_SYSTEM_PROMPT),
-            userMessage(conversationContent),
-        ];
-        updateChatSession({ messages: genStorySuggestionMessages });
-        setCurrentChatUid(v4());
-        handleChat(genStorySuggestionMessages, "AI 產生建議時發生錯誤",
-            (isStreaming: boolean) => updateChatSession({ isStreaming }),
-            updateCurrentResponse,
-            appendCurrentResponse,
+        updateChatSession({ isStreaming: true });
+        const storyContent = `<story>
+        ${values.chatMessage}
+        </story>`;
+        const genStorySuggestionMessages = systemMessage(SYSTEM_PROMPT + STORY_GENERATOR_SYSTEM_PROMPT + storyContent);
+        const newMessages = await appendChatSession(userMessage('提供故事建議'), genStorySuggestionMessages)
+        await handleChat(newMessages, "AI 產生建議時發生錯誤",
+            (text: string) => updateChatSession({ currentResponse: text }),
+            (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef
-        );
+        )
+        updateChatSession({ isStreaming: false });
     }
 
     const scrollToBottom = useCallback(() => {
@@ -150,10 +178,10 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
 
         if (!chatSession.currentResponse) return;
 
-        const parsed = parseResponse(chatSession.currentResponse);
+        const parsed = parseResponse(chatSession.currentResponse, ["think"]);
         if (parsed) {
             updateChatSession({
-                thinking: parsed.thinking,
+                think: parsed.think,
                 responseResult: parsed.response,
                 isThinking: parsed.isThinking
             });
@@ -161,9 +189,7 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
 
         if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'user') {
             // AI 回應完畢, 儲存 AI 的完整回應
-            const newAssistantMessage = assistantMessage(chatSession.currentResponse);
-            const newMessages = [...chatSession.messages, newAssistantMessage];
-            updateChatSession({ messages: newMessages });
+            appendAssistantMessage();
 
             // 給予對話標題
             if (!chatSession.title && !chatSession.isTitleStreaming) {
@@ -174,15 +200,11 @@ export const useChatSession = (initialMessages: ChatMessage[], historyRef?: Reac
 
     useEffect(() => {
         if (!chatSession.titleResponse) return;
-        const parsed = parseResponse(chatSession.titleResponse);
+        const parsed = parseResponse(chatSession.titleResponse, ["title"]);
         if (parsed) {
             updateChatSession({ title: parsed.title });
         }
     }, [chatSession.titleResponse]);
-
-    useEffect(() => {
-        console.debug("chatSession.messages", chatSession.messages);
-    }, [chatSession.messages])
 
     return {
         chatSession,

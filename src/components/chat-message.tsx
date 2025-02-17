@@ -24,7 +24,7 @@ interface ChatMessageBlockProps {
 }
 
 export const ChatMessageBlock: React.FC<ChatMessageBlockProps> = ({ message, handleRegenerate }) => {
-    const parsedMessage = parseResponse(message.content);
+    const parsedMessage = parseResponse(message.content, ['think']);
     return (
         <div className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`} key={`${message.uid}-${message.timestamp}`} >
             <div className={[
@@ -32,7 +32,7 @@ export const ChatMessageBlock: React.FC<ChatMessageBlockProps> = ({ message, han
                 message.role === 'user' && 'px-4 py-1 rounded-lg bg-white dark:bg-slate-800',
                 'min-h-4 border-0 shadow-none resize-none focus-visible:ring-0 overflow-hidden bg-transparent',
             ].join(' ')}>
-                {message.role === 'assistant' && <ThinkAccordion think={parsedMessage?.thinking} />}
+                {message.role === 'assistant' && <ThinkAccordion think={parsedMessage?.think} />}
                 {message.role === 'assistant' && (
                     <>
                         <MarkdownRenderer content={parsedMessage?.response} />
