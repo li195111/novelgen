@@ -20,13 +20,14 @@ interface StoryChatFormProps {
     chatSession: ChatSessionState;
     handleStop?: () => void;
     submitMap: React.MutableRefObject<{
-        [key: string]: (values: TypeOf<typeof StoryChatSchema>) => Promise<void>;
+        [key: string]: (values: TypeOf<typeof StoryChatSchema>, darkMode?: boolean) => Promise<void>;
     }>;
+    isDarkModeChat?: boolean;
 }
 
-export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, submitMap }) => {
+export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, submitMap, isDarkModeChat }) => {
     const { selectedStory } = useCurrentStoryStorage();
-    const [submitAction, setSubmitAction] = useState<SubmitAction>(SubmitAction.normal);
+    const [storyValue, setStoryValue] = useState<string>('');
 
     const chatMessageRef = useRef<HTMLTextAreaElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
@@ -50,6 +51,17 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
     useEffect(() => {
         dynamicHeight(chatMessageRef);
     }, [storyForm.watch('chatMessage')]);
+
+    useEffect(() => {
+        setStoryValue(`<title>${selectedStory?.title}</title>
+            <tags>${JSON.stringify(selectedStory?.tags)}</tags>
+            <characters>${JSON.stringify(selectedStory?.characters.map(({ uid, ...rest }) => (
+            `<info>\n- 名稱：${rest.name}\n- 身高: ${rest.height}公分\n- 體重: ${rest.weight}公斤\n- 身材: ${rest.bodyDesc}\n- 職業: ${rest.job}\n- 個性: ${rest.personality}\n- 日常: ${rest.otherDesc}\n- 經歷: ${rest.experience}\n</info>`)), null)}
+            </characters>
+            <scene>${JSON.stringify(selectedStory?.scenes)}</scene>
+            <outline>${selectedStory?.outline}</outline>
+            <currentScene>${selectedStory?.currentScene}</currentScene>`)
+    }, [selectedStory]);
 
     return (
         <Form {...storyForm}>
@@ -75,24 +87,46 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                     )}
                 />
                 <div className="flex w-full justify-between items-center">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
-                        disabled={!selectedStory}
-                        onClick={() => {
-                            const storyValue = `
-                            <title>${selectedStory?.title}</title>
-                            <tags>${JSON.stringify(selectedStory?.tags)}</tags>
-                            <characters>${JSON.stringify(selectedStory?.characters.map(({ uid, ...rest }) => rest), null)}</characters>
-                            <scene>${JSON.stringify(selectedStory?.scenes)}</scene>
-                            <outline>${selectedStory?.outline}</outline>
-                            <currentScene>${selectedStory?.currentScene}</currentScene>`;
-                            submitMap.current[SubmitAction.storySuggestion]?.({ chatMessage: storyValue });
-                        }}
-                    >
-                        產生故事建議
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            disabled={!selectedStory}
+                            onClick={() => submitMap.current[SubmitAction.storySuggestion]?.({ chatMessage: storyValue }, isDarkModeChat)}
+                        >
+                            產生故事建議
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            onClick={() => submitMap.current[SubmitAction.storySceneSuggestion]?.({ chatMessage: storyValue }, isDarkModeChat)}
+                        >
+                            產生場景建議
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                        >
+                            產生故事大綱
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                        >
+                            增加以下劇情
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                        >
+                            改寫並增加後續劇情
+                        </Button>
+                    </div>
                     <Button
                         type="submit"
                         className="w-9 rounded-full"

@@ -1,6 +1,6 @@
 import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
-import { STORY_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/constant";
+import { STORY_SCENE_GENERATEOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { parseResponse } from "@/utils";
@@ -57,6 +57,13 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     const updateChatSession = (updates: Partial<ChatSessionState>) => {
         setChatSession((prev) => ({ ...prev, ...updates }));
     };
+
+    const updateChatSessionDarkMode = (darkMode: boolean) => {
+        setChatSession((prev) => ({
+            ...prev,
+            messages: [systemMessage(SYSTEM_PROMPT(darkMode)), ...prev.messages.slice(1)],
+        }));
+    }
 
     const appendChatSession = async (message: ChatMessage[] | ChatMessage, updateSystem?: ChatMessage): Promise<ChatMessage[]> => {
         if (!Array.isArray(message)) {
@@ -140,7 +147,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         updateChatSession({ isTitleStreaming: true });
         const conversationContent = `<query>${JSON.stringify(chatSession.messages.filter(mes => mes.role === 'user').map(mes => mes.content))}</query>`;
         const genChatTitleMessages = [
-            systemMessage(SYSTEM_PROMPT + TITLE_GENERATOR_SYSTEM_PROMPT),
+            systemMessage(SYSTEM_PROMPT() + TITLE_GENERATOR_SYSTEM_PROMPT),
             userMessage(conversationContent),
         ]
         await handleChat(genChatTitleMessages, "讓 AI 產生對話Title時發生錯誤",
@@ -151,12 +158,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         updateChatSession({ isTitleStreaming: false });
     }
 
-    const handleStorySuggestion = async (values: z.infer<typeof StoryChatSchema>) => {
+    const handleStorySuggestion = async (values: z.infer<typeof StoryChatSchema>, darkMode?: boolean) => {
         updateChatSession({ isStreaming: true });
         const storyContent = `<story>
         ${values.chatMessage}
         </story>`;
-        const genStorySuggestionMessages = systemMessage(SYSTEM_PROMPT + STORY_GENERATOR_SYSTEM_PROMPT + storyContent);
+        const genStorySuggestionMessages = systemMessage(STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT(darkMode) + storyContent);
         const newMessages = await appendChatSession(userMessage('提供故事建議'), genStorySuggestionMessages)
         await handleChat(newMessages, "AI 產生建議時發生錯誤",
             (text: string) => updateChatSession({ currentResponse: text }),
@@ -166,6 +173,23 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         )
         updateChatSession({ isStreaming: false });
     }
+
+    const handleStorySceneSuggestion = async (values: z.infer<typeof StoryChatSchema>, darkMode?: boolean) => {
+        updateChatSession({ isStreaming: true });
+        const storyContent = `<story>
+        ${values.chatMessage}
+        </story>`;
+        const genStorySuggestionMessages = systemMessage(STORY_SCENE_GENERATEOR_SYSTEM_PROMPT(darkMode) + storyContent);
+        const newMessages = await appendChatSession(userMessage('提供情節場景'), genStorySuggestionMessages)
+        await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
+            (text: string) => updateChatSession({ currentResponse: text }),
+            (text: string) => appendChatResponse('currentResponse', text),
+            toast,
+            abortControllerRef
+        )
+        updateChatSession({ isStreaming: false });
+    }
+
 
     const scrollToBottom = useCallback(() => {
         if (historyRef?.current) {
@@ -216,8 +240,8 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         handleChatStory,
         handleRegenerate,
         handleChatTitle,
-        handleStorySuggestion,
-        updateChatSession,
+        handleStorySuggestion, handleStorySceneSuggestion,
+        updateChatSession, updateChatSessionDarkMode,
         currentChatUid, setCurrentChatUid,
     };
 };

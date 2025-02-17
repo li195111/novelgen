@@ -5,15 +5,23 @@ import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection } from "@/models/chat-collection";
 import { useEffect, useState } from "react";
 import { v4 } from "uuid";
+import { useLocalStorage } from "./use-storage";
 
 export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     const [chatState, setChatState] = useChatStorage();
+    const [isDarkModeChat, setIsDarkModeChat] = useLocalStorage<boolean>('dark-mode-chat', false);
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
     const { chatSession, updateChatSession, resetChatSession,
-        handleChatStory, handleRegenerate, handleChatTitle, handleStorySuggestion,
-        currentChatUid, setCurrentChatUid
-    } = useChatSession([systemMessage(SYSTEM_PROMPT)], selectedChat, historyRef);
+        handleChatStory, handleRegenerate, handleChatTitle,
+        handleStorySuggestion, handleStorySceneSuggestion,
+        currentChatUid, setCurrentChatUid, updateChatSessionDarkMode
+    } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], selectedChat, historyRef);
+
+    const toggleIsDarkModeChat = () => {
+        setIsDarkModeChat(!isDarkModeChat);
+        updateChatSessionDarkMode(!isDarkModeChat);
+    }
 
     const resetCurrentChatSession = () => {
         resetChatSession();
@@ -54,7 +62,7 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
             setCurrentChatCollectionId(foundCollection?.id ?? "unorganized");
             updateChatSession({
                 title: foundChat.title ?? '',
-                messages: foundChat.messages ?? [systemMessage(SYSTEM_PROMPT)]
+                messages: foundChat.messages ?? [systemMessage(SYSTEM_PROMPT(isDarkModeChat))],
             });
         }
     }, [currentChatCollectionId, chatState, selectedChat]);
@@ -83,10 +91,12 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     return {
         chatSession,
         resetCurrentChatSession, updateChatSession,
-        handleChatStory, handleRegenerate, handleChatTitle, handleStorySuggestion,
+        handleChatStory, handleRegenerate, handleChatTitle,
+        handleStorySuggestion, handleStorySceneSuggestion,
         chatState, setChatState,
         currentChatUid, setCurrentChatUid,
         selectedChat, setSelectedChat,
         currentChatCollectionId, setCurrentChatCollectionId,
+        isDarkModeChat, toggleIsDarkModeChat,
     }
 }

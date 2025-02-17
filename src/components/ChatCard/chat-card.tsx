@@ -14,7 +14,8 @@ import { TypeOf } from "zod";
 
 export enum SubmitAction {
     normal = 'normal',
-    storySuggestion = 'story-suggestion'
+    storySuggestion = 'story-suggestion',
+    storySceneSuggestion = 'story-scene-suggestion'
 }
 
 interface ChatCardProps {
@@ -23,10 +24,14 @@ interface ChatCardProps {
 export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { chatUid } = useParams();
     const historyRef = useRef<HTMLDivElement>(null);
-    const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate, handleStorySuggestion } = useCurrentChatStorage(historyRef);
-    const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>) => Promise<void> }>({
+    const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate,
+        handleStorySuggestion, handleStorySceneSuggestion,
+        isDarkModeChat, toggleIsDarkModeChat,
+    } = useCurrentChatStorage(historyRef);
+    const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>, darkMode?: boolean) => Promise<void> }>({
         'normal': handleChatStory,
-        'story-suggestion': handleStorySuggestion
+        'story-suggestion': handleStorySuggestion,
+        'story-scene-suggestion': handleStorySceneSuggestion,
     });
 
     const abortControllerRef = useRef<AbortController | null>(null);
@@ -77,7 +82,10 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                         <ChatCardHeader
                             chatSession={chatSession}
                             toggleCollapse={toggleCollapse}
-                            handleNewChatSession={handleNewChatSession} />
+                            handleNewChatSession={handleNewChatSession}
+                            isDarkModeChat={isDarkModeChat}
+                            toggleIsDarkModeChat={toggleIsDarkModeChat}
+                        />
                         <ChatContent
                             chatSession={chatSession}
                             historyRef={historyRef}
@@ -89,6 +97,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                                 chatSession={chatSession}
                                 handleStop={handleStopChat}
                                 submitMap={submitMap}
+                                isDarkModeChat={isDarkModeChat}
                             />
                         </CardFooter>
                     </Card>

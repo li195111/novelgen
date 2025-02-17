@@ -4,14 +4,17 @@ import { CardHeader } from "@/components/ui/card"
 import { ChatSessionState } from "@/hooks/use-chat-session"
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage"
 import { ChevronDownIcon, LucidePencilLine } from "lucide-react"
+import { Switch } from "../ui/switch"
 
 interface ChatCardHeaderProps {
     chatSession: ChatSessionState
     toggleCollapse: () => void
     handleNewChatSession: () => void
+    isDarkModeChat?: boolean
+    toggleIsDarkModeChat?: () => void
 }
 
-export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, toggleCollapse, handleNewChatSession }) => {
+export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, toggleCollapse, handleNewChatSession, isDarkModeChat, toggleIsDarkModeChat }) => {
     const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
     return (
         <CardHeader className="h-8 flex flex-row items-center px-3 py-1 space-y-0 bg-slate-200 rounded-tl-lg rounded-tr-lg">
@@ -30,6 +33,10 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, tog
                     {!chatSession.title && chatSession.isTitleStreaming && <ThinkingDots />}
                 </div>
             </div>
+            {toggleIsDarkModeChat && (
+                <div>
+                    <Switch checked={isDarkModeChat} onClick={toggleIsDarkModeChat} />
+                </div>)}
             <Button variant='ghost' className="justify-self-end px-2 py-0 h-full" title="縮小" onClick={toggleCollapse}>
                 <ChevronDownIcon className="w-4 h-4" />
             </Button>
