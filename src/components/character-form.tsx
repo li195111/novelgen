@@ -19,9 +19,9 @@ export const CharacterSchema = z.object({
     uid: z.string().nonempty(),
     name: z.string().nonempty(),
     sex: z.string().nonempty(),
-    age: z.number().min(0).optional(),
-    height: z.number().optional(),
-    weight: z.number().optional(),
+    age: z.number().min(0).or(z.string()).optional(),
+    height: z.number().or(z.string()).optional(),
+    weight: z.number().or(z.string()).optional(),
     bodyDesc: z.string().optional(),
     job: z.string().optional(),
     personality: z.string().optional(),
@@ -46,9 +46,9 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
             uid: defaultCharacter?.uid ?? v4(),
             name: defaultCharacter?.name ?? "",
             sex: defaultCharacter?.sex ?? "male",
-            age: defaultCharacter?.age ?? undefined,
-            height: defaultCharacter?.height ?? undefined,
-            weight: defaultCharacter?.weight ?? undefined,
+            age: defaultCharacter?.age ?? "",
+            height: defaultCharacter?.height ?? "",
+            weight: defaultCharacter?.weight ?? "",
             bodyDesc: defaultCharacter?.bodyDesc ?? "",
             job: defaultCharacter?.job ?? "",
             personality: defaultCharacter?.personality ?? "",
@@ -229,7 +229,9 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                     )}
                 />
                 <DialogFooter>
-                    <Button type="submit" className="bg-green-600">
+                    <Button type="button" className="bg-green-600" onClick={() => {
+                        handleSubmit(characterForm.getValues());
+                    }}>
                         {defaultCharacter ? "修改" : "新增"}
                     </Button>
                 </DialogFooter>

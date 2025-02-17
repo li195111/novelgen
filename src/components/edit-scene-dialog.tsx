@@ -34,7 +34,7 @@ const EditSceneDialog: React.FC<EditSceneDialogProps> = ({ open, onClose, scene,
                     <DialogTitle>編輯場景</DialogTitle>
                 </DialogHeader>
                 <Textarea defaultValue={scene} ref={sceneTextareaRef} />
-                <Button onClick={handleSubmit}>確認</Button>
+                <Button type="button" onClick={handleSubmit}>確認</Button>
             </DialogContent>
         </Dialog>
     );

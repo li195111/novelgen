@@ -63,8 +63,8 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
             uid: defaultStory?.uid ?? v4(),
             title: defaultStory?.title ?? "",
             tags: defaultStory?.tags ?? [],
-            characters: characterList,
-            scenes: sceneList,
+            characters: defaultStory?.characters ?? [],
+            scenes: defaultStory?.scenes ?? [],
             outline: defaultStory?.outline ?? "",
             content: defaultStory?.content ?? "",
             currentScene: defaultStory?.currentScene ?? "",
@@ -179,207 +179,212 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
     }, [storyForm.watch('currentScene')]);
 
     return (
-        <Form {...storyForm}>
-            <form onSubmit={storyForm.handleSubmit(handleSubmit)} className="space-y-2">
-                <FormField
-                    control={storyForm.control}
-                    name="title"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <Input className="border-0 shadow-none" placeholder="輸入故事標題..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={storyForm.control}
-                    name="tags"
-                    render={({ field }) => {
-                        const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-                            const input = e.target as HTMLInputElement;
-                            const value = input.value;
-
-                            // 當按下逗號或 Enter 時
-                            if ((e.key === ',' || e.key === 'Enter') && value.trim()) {
-                                e.preventDefault();
-                                // 移除可能的逗號
-                                const newTag = value.replace(/,/g, '').trim();
-                                if (newTag && !tagList.includes(newTag)) {
-                                    const newTags = [...tagList, newTag];
-                                    setTagList(newTags);
-                                }
-                                input.value = '';
-                            }
-                        };
-
-                        const removeTag = (tagToRemove: string) => {
-                            const newTags = tagList.filter(tag => tag !== tagToRemove);
-                            setTagList(newTags);
-                        };
-
-                        return (
+        <>
+            <AddCharacterDialog
+                open={isAddCharacterDialogOpen}
+                onClose={() => setIsAddCharacterDialogOpen(false)}
+                onAdd={handleAddCharacter}
+            />
+            <EditCharacterDialog
+                open={isEditCharacterDialogOpen}
+                onClose={() => {
+                    setIsEditCharacterDialogOpen(false);
+                    setSelectedCharacter(null);
+                }}
+                character={selectedCharacter}
+                onEdit={handleEditCharacter}
+            />
+            <AddSceneDialog
+                open={isAddSceneDialogOpen}
+                onClose={() => setIsAddSceneDialogOpen(false)}
+                onAdd={handleAddScene}
+            />
+            <EditSceneDialog
+                open={isEditSceneDialogOpen}
+                onClose={() => {
+                    setIsEditSceneDialogOpen(false);
+                    setSelectedScene(null);
+                }}
+                scene={selectedScene}
+                onEdit={handleEditScene}
+            />
+            <Form {...storyForm}>
+                <form onSubmit={storyForm.handleSubmit(handleSubmit)} className="space-y-2">
+                    <FormField
+                        control={storyForm.control}
+                        name="title"
+                        render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    <div className="space-y-2">
-                                        <div className="flex flex-wrap gap-2">
-                                            {tagList.map((tag, _) => (
-                                                <Badge
-                                                    key={`tag-${v4()}`}
-                                                    variant="secondary"
-                                                    className="px-3 py-1"
-                                                >
-                                                    {tag}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeTag(tag)}
-                                                        className="ml-2 hover:text-destructive"
-                                                    >
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                        <Input
-                                            className="border-0 shadow-none"
-                                            placeholder="輸入標籤後按 Enter 或逗號..."
-                                            onKeyDown={handleKeyDown}
-                                        />
-                                    </div>
+                                    <Input className="border-0 shadow-none" placeholder="輸入故事標題..." {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
-                        );
-                    }}
-                />
-                <AddCharacterDialog
-                    open={isAddCharacterDialogOpen}
-                    onClose={() => setIsAddCharacterDialogOpen(false)}
-                    onAdd={handleAddCharacter}
-                />
-                <EditCharacterDialog
-                    open={isEditCharacterDialogOpen}
-                    onClose={() => {
-                        setIsEditCharacterDialogOpen(false);
-                        setSelectedCharacter(null);
-                    }}
-                    character={selectedCharacter}
-                    onEdit={handleEditCharacter}
-                />
-                <div className="flex items-center space-x-1">
-                    <Label>角色</Label>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="p-1 h-6 w-6"
-                        onClick={() => setIsAddCharacterDialogOpen(true)}
-                    >
-                        <PlusCircleIcon />
-                    </Button>
-                </div>
-                <div className="flex space-x-2">
-                    {characterList.map((character, _) => (
+                        )}
+                    />
+                    <FormField
+                        control={storyForm.control}
+                        name="tags"
+                        render={({ field }) => {
+                            const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+                                const input = e.target as HTMLInputElement;
+                                const value = input.value;
+
+                                // 當按下逗號或 Enter 時
+                                if ((e.key === ',' || e.key === 'Enter') && value.trim()) {
+                                    e.preventDefault();
+                                    // 移除可能的逗號
+                                    const newTag = value.replace(/,/g, '').trim();
+                                    if (newTag && !tagList.includes(newTag)) {
+                                        const newTags = [...tagList, newTag];
+                                        setTagList(newTags);
+                                    }
+                                    input.value = '';
+                                }
+                            };
+
+                            const removeTag = (tagToRemove: string) => {
+                                const newTags = tagList.filter(tag => tag !== tagToRemove);
+                                setTagList(newTags);
+                            };
+
+                            return (
+                                <FormItem>
+                                    <FormControl>
+                                        <div className="space-y-2">
+                                            <div className="flex flex-wrap gap-2">
+                                                {tagList.map((tag, _) => (
+                                                    <Badge
+                                                        key={`tag-${v4()}`}
+                                                        variant="secondary"
+                                                        className="p-0 m-0 h-8 px-2 py-1"
+                                                    >
+                                                        {tag}
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            onClick={() => removeTag(tag)}
+                                                            className="p-0 m-0 ml-1 hover:text-destructive"
+                                                            asChild
+                                                        >
+                                                            <X size={14} className="h-full hover:cursor-pointer" />
+                                                        </Button>
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                            <Input
+                                                className="border-0 shadow-none"
+                                                placeholder="輸入標籤後按 Enter 或逗號..."
+                                                onKeyDown={handleKeyDown}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            );
+                        }}
+                    />
+                    <div className="flex items-center space-x-1">
+                        <Label>角色</Label>
                         <Button
                             type="button"
                             variant="ghost"
-                            key={`characters-${v4()}`}
-                            onClick={() => handleEditCharacterClick(character)}
+                            className="p-1 h-6 w-6"
+                            onClick={() => setIsAddCharacterDialogOpen(true)}
                         >
-                            {character.name}
+                            <PlusCircleIcon />
                         </Button>
-                    ))}
-                </div>
-
-                <AddSceneDialog
-                    open={isAddSceneDialogOpen}
-                    onClose={() => setIsAddSceneDialogOpen(false)}
-                    onAdd={handleAddScene}
-                />
-                <EditSceneDialog
-                    open={isEditSceneDialogOpen}
-                    onClose={() => {
-                        setIsEditSceneDialogOpen(false);
-                        setSelectedScene(null);
-                    }}
-                    scene={selectedScene}
-                    onEdit={handleEditScene}
-                />
-                <div className="flex items-center space-x-1">
-                    <Label>場景</Label>
-                    <Button
-                        variant="ghost"
-                        className="p-1 h-6 w-6"
-                        onClick={() => setIsAddSceneDialogOpen(true)}
-                    >
-                        <PlusCircleIcon />
-                    </Button>
-                </div>
-                <div className="flex space-x-2">
-                    {sceneList.map((scene, _) => (
+                    </div>
+                    <div className="flex space-x-2">
+                        {characterList.map((character, _) => (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                key={`characters-${v4()}`}
+                                onClick={() => handleEditCharacterClick(character)}
+                            >
+                                {character.name}
+                            </Button>
+                        ))}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <Label>場景</Label>
                         <Button
+                            type="button"
                             variant="ghost"
-                            key={`characters-${v4()}`}
-                            onClick={() => handleEditSceneClick(scene)}
+                            className="p-1 h-6 w-6"
+                            onClick={() => setIsAddSceneDialogOpen(true)}
                         >
-                            {scene}
+                            <PlusCircleIcon />
                         </Button>
-                    ))}
-                </div>
+                    </div>
+                    <div className="flex space-x-2">
+                        {sceneList.map((scene, _) => (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                key={`characters-${v4()}`}
+                                onClick={() => handleEditSceneClick(scene)}
+                            >
+                                {scene}
+                            </Button>
+                        ))}
+                    </div>
 
-                <FormField
-                    control={storyForm.control}
-                    name="outline"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>大綱</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="輸入故事大綱..." {...field}
-                                    className="h-auto resize-none"
-                                    ref={outlineRef}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={storyForm.control}
-                    name="content"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>內容</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="輸入故事內容..." {...field}
-                                    className="h-auto resize-none"
-                                    ref={contentRef}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={storyForm.control}
-                    name="currentScene"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>當前場景</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="輸入當前場景..." {...field}
-                                    className="h-auto resize-none"
-                                    ref={currentSceneRef}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <div className="flex items-center justify-end">
-                    <Button type="submit">儲存</Button>
-                </div>
-            </form>
-        </Form>
+                    <FormField
+                        control={storyForm.control}
+                        name="outline"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>大綱</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="輸入故事大綱..." {...field}
+                                        className="h-auto resize-none"
+                                        ref={outlineRef}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={storyForm.control}
+                        name="content"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>內容</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="輸入故事內容..." {...field}
+                                        className="h-auto resize-none"
+                                        ref={contentRef}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={storyForm.control}
+                        name="currentScene"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>當前場景</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="輸入當前場景..." {...field}
+                                        className="h-auto resize-none"
+                                        ref={currentSceneRef}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <div className="flex items-center justify-end">
+                        <Button type="submit">儲存</Button>
+                    </div>
+                </form>
+            </Form>
+        </>
     )
 };
 

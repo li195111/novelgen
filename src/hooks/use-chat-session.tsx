@@ -206,6 +206,10 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         }
     }, [chatSession.titleResponse]);
 
+    useEffect(() => {
+        console.debug('Messages: ', chatSession.messages);
+    }, [chatSession.messages]);
+
     return {
         chatSession,
         resetChatSession,

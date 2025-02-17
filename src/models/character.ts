@@ -4,9 +4,9 @@ export interface CharacterProps {
   uid: string;
   name: string;
   sex: string;
-  age?: number;
-  height?: number;
-  weight?: number;
+  age?: number | string;
+  height?: number | string;
+  weight?: number | string;
   bodyDesc?: string;
   job?: string;
   personality?: string;
@@ -20,9 +20,9 @@ export class Character implements CharacterProps {
   uid: string;
   name: string;
   sex: string;
-  age?: number;
-  height?: number;
-  weight?: number;
+  age?: number | string;
+  height?: number | string;
+  weight?: number | string;
   bodyDesc?: string;
   job?: string;
   personality?: string;

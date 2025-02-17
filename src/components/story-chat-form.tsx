@@ -84,7 +84,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             const storyValue = `
                             <title>${selectedStory?.title}</title>
                             <tags>${JSON.stringify(selectedStory?.tags)}</tags>
-                            <characters>${JSON.stringify(selectedStory?.characters)}</characters>
+                            <characters>${JSON.stringify(selectedStory?.characters.map(({ uid, ...rest }) => rest), null)}</characters>
                             <scene>${JSON.stringify(selectedStory?.scenes)}</scene>
                             <outline>${selectedStory?.outline}</outline>
                             <currentScene>${selectedStory?.currentScene}</currentScene>`;

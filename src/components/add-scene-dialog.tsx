@@ -31,7 +31,7 @@ const AddSceneDialog: React.FC<AddSceneDialogProps> = ({ open, onClose, onAdd })
                     <DialogTitle>新增場景</DialogTitle>
                 </DialogHeader>
                 <Textarea ref={sceneTextareaRef} />
-                <Button onClick={handleSubmit}>確認</Button>
+                <Button type="button" onClick={handleSubmit}>確認</Button>
             </DialogContent>
         </Dialog>
     );
