@@ -101,6 +101,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             type="button"
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            disabled={!selectedStory}
                             onClick={() => submitMap.current[SubmitAction.storySceneSuggestion]?.({ chatMessage: storyValue }, isDarkModeChat)}
                         >
                             產生場景建議
@@ -109,6 +110,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             type="button"
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            disabled={!selectedStory}
                         >
                             產生故事大綱
                         </Button>
@@ -116,6 +118,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             type="button"
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            disabled={!selectedStory}
                         >
                             增加以下劇情
                         </Button>
@@ -123,6 +126,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             type="button"
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            disabled={!selectedStory}
                         >
                             改寫並增加後續劇情
                         </Button>

@@ -176,11 +176,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
 
     const handleStorySceneSuggestion = async (values: z.infer<typeof StoryChatSchema>, darkMode?: boolean) => {
         updateChatSession({ isStreaming: true });
-        const storyContent = `<story>
+        const storyContent = `
+        <story>
         ${values.chatMessage}
         </story>`;
         const genStorySuggestionMessages = systemMessage(STORY_SCENE_GENERATEOR_SYSTEM_PROMPT(darkMode) + storyContent);
-        const newMessages = await appendChatSession(userMessage('提供情節場景'), genStorySuggestionMessages)
+        const newMessages = await appendChatSession(userMessage(`提供${darkMode ? '成人' : ''}情節場景`), genStorySuggestionMessages)
         await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
             (text: string) => updateChatSession({ currentResponse: text }),
             (text: string) => appendChatResponse('currentResponse', text),
@@ -235,7 +236,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     }, [chatSession.messages]);
 
     return {
-        chatSession,
+        chatSession, setChatSession,
         resetChatSession,
         handleChatStory,
         handleRegenerate,
