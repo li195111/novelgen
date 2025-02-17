@@ -35,12 +35,11 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, tog
                 </div>
             </div>
             {toggleIsDarkModeChat && (
-                <div>
-                    <div className="flex items-center">
-                        <Label className="p-0 mr-2 text-sm min-w-max">{isDarkModeChat ? "暗黑" : "一般"}模式</Label>
-                        <Switch checked={isDarkModeChat} onClick={toggleIsDarkModeChat} />
-                    </div>
-                </div>)}
+                <div className="flex items-center mr-2">
+                    <Label className="p-0 mr-2 text-sm min-w-max">{isDarkModeChat ? "暗黑" : "一般"}模式</Label>
+                    <Switch checked={isDarkModeChat} onClick={toggleIsDarkModeChat} />
+                </div>
+            )}
             <Button variant='ghost' className="justify-self-end px-2 py-0 h-full" title="縮小" onClick={toggleCollapse}>
                 <ChevronDownIcon className="w-4 h-4" />
             </Button>
