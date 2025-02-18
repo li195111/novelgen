@@ -34,68 +34,73 @@ export const handleChat = async (
   toastCallback?: (props: any) => {},
   abortControllerRef?: React.MutableRefObject<AbortController | null> | null,
   model?: string
-) => {
-  try {
-    if (setResponseCallback) {
-      setResponseCallback("");
-    }
+): Promise<string> => {
+  return new Promise<string>(async (resolve) => {
+    try {
+      if (setResponseCallback) {
+        setResponseCallback("");
+      }
 
-    // Create new AbortController
-    if (abortControllerRef) {
-      abortControllerRef.current = new AbortController();
-    }
+      // Create new AbortController
+      if (abortControllerRef) {
+        abortControllerRef.current = new AbortController();
+      }
 
-    const response = await handleOllamaChat(
-      messages,
-      abortControllerRef?.current?.signal,
-      model
-    );
+      const response = await handleOllamaChat(
+        messages,
+        abortControllerRef?.current?.signal,
+        model
+      );
 
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
 
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error("Reader not available");
-    }
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("Reader not available");
+      }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      let responseText = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      // Convert the chunk to text
-      const chunk = new TextDecoder().decode(value);
+        // Convert the chunk to text
+        const chunk = new TextDecoder().decode(value);
 
-      // Parse the JSON lines
-      const lines = chunk.split("\n").filter((line) => line.trim());
+        // Parse the JSON lines
+        const lines = chunk.split("\n").filter((line) => line.trim());
 
-      for (const line of lines) {
-        try {
-          const parsedLine = JSON.parse(line);
-          if (parsedLine.message?.content) {
-            if (appendResponseCallback) {
-              appendResponseCallback(parsedLine.message.content);
+        for (const line of lines) {
+          try {
+            const parsedLine = JSON.parse(line);
+            if (parsedLine.message?.content) {
+              if (appendResponseCallback) {
+                appendResponseCallback(parsedLine.message.content);
+                responseText += parsedLine.message.content;
+              }
             }
+          } catch (e) {
+            console.error("Error parsing JSON line:", e);
           }
-        } catch (e) {
-          console.error("Error parsing JSON line:", e);
         }
       }
+      resolve(responseText);
+    } catch (error) {
+      console.error("Error:", error);
+      if (toastCallback) {
+        toastCallback({
+          title: "錯誤",
+          description: errorDescription,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+    } finally {
+      if (abortControllerRef) {
+        abortControllerRef.current = null;
+      }
     }
-  } catch (error) {
-    console.error("Error:", error);
-    if (toastCallback) {
-      toastCallback({
-        title: "錯誤",
-        description: errorDescription,
-        variant: "destructive",
-        duration: 5000,
-      });
-    }
-  } finally {
-    if (abortControllerRef) {
-      abortControllerRef.current = null;
-    }
-  }
+  });
 };

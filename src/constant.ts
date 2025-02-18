@@ -1,9 +1,9 @@
 export const MODEL_SELECTION = [
-  'deepseek-r1:7b',
-  'deepseek-r1:8b',
-  'deepseek-r1:14b',
-  'deepseek-r1:32b',
-]
+  "deepseek-r1:7b",
+  "deepseek-r1:8b",
+  "deepseek-r1:14b",
+  "deepseek-r1:32b",
+];
 
 export const MAX_TEAXTAREA_HEIGHT = 300;
 
@@ -66,15 +66,17 @@ export const STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT = (
   darkMode?: boolean,
   elements?: string[]
 ) => `${SYSTEM_PROMPT(darkMode, elements)}
-* 嚴格遵守根據<story></story>中的經歷與其他資訊提供故事建議。
+* 嚴格遵守根據<story></story>與<info></info>中的"經歷"資訊與其他資訊提供符合邏輯的小說故事建議。
 * 嚴格遵守除非用戶提問，否則不用提供額外的故事資訊。`;
 
 export const STORY_SCENE_GENERATEOR_SYSTEM_PROMPT = (
   darkMode?: boolean,
   elements?: string[]
 ) => `${SYSTEM_PROMPT(darkMode, elements)}
-* 嚴格遵守根據<story></story>與<info></info>中的"經歷"資訊與其他資訊提供故事建議。
-* 提供可能在"經歷"中發生哪些引人入勝的5個${darkMode ? "成人" : ""}情節場景。
+* 嚴格遵守根據<story></story>與<info></info>中的"經歷"資訊與其他資訊提供符合邏輯的小說故事建議。
+* 提供可能在"經歷"中發生哪些引人入勝的5個${
+  darkMode ? "成人" : ""
+}符合邏輯的小說情節場景地點。
 * 嚴格遵守除非用戶提問，否則不用提供額外的故事資訊。`;
 
 export const DARK_MODE_STORY_CONTENT_GENERATOR_SYSTEM_PROMPT = `* 強調身材的性感之處與產生性誘惑的部位

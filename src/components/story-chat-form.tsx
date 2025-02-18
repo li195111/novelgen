@@ -6,21 +6,26 @@ import { ChatSessionState } from "@/hooks/use-chat-session";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SendIcon, StopCircle } from "lucide-react";
+import { SendIcon, StopCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { v4 } from "uuid";
 import { TypeOf, z } from "zod";
+import { Badge } from "./ui/badge";
+import { Label } from "./ui/label";
 
 export const StoryChatSchema = z.object({
     chatMessage: z.string().nonempty("請輸入劇情內容"),
 });
 export type StoryType = z.infer<typeof StoryChatSchema>;
 
+type ChatTag = "Story";
+
 interface StoryChatFormProps {
     chatSession: ChatSessionState;
     handleStop?: () => void;
     submitMap: React.MutableRefObject<{
-        [key: string]: (values: TypeOf<typeof StoryChatSchema>, darkMode?: boolean) => Promise<void>;
+        [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => Promise<void>;
     }>;
     isDarkModeChat?: boolean;
 }
@@ -28,6 +33,8 @@ interface StoryChatFormProps {
 export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, submitMap, isDarkModeChat }) => {
     const { selectedStory } = useCurrentStoryStorage();
     const [storyValue, setStoryValue] = useState<string>('');
+    const [chatTagList, setChatTagList] = useState<(string | ChatTag)[]>(['Story']);
+    const [useChatTagList, setUseChatTagList] = useState<(string | ChatTag)[]>([]);
 
     const chatMessageRef = useRef<HTMLTextAreaElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
@@ -48,6 +55,17 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
         }
     }
 
+    const handleAddChatTag = (tag: string) => () => {
+        if (!useChatTagList.includes(tag)) {
+            setUseChatTagList([...useChatTagList, tag]);
+        }
+    };
+
+    const removeUseChatTag = (tagToRemove: string) => {
+        const newTags = useChatTagList.filter(tag => tag !== tagToRemove);
+        setUseChatTagList(newTags);
+    };
+
     useEffect(() => {
         dynamicHeight(chatMessageRef);
     }, [storyForm.watch('chatMessage')]);
@@ -66,9 +84,33 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
     return (
         <Form {...storyForm}>
             <form onSubmit={storyForm.handleSubmit((v) => {
-                submitMap.current[SubmitAction.normal]?.(v);
+                let storyInfo = undefined;
+                if (useChatTagList.includes('Story')) {
+                    storyInfo = storyValue;
+                }
+                submitMap.current[SubmitAction.normal]?.(v, storyInfo, isDarkModeChat);
                 storyForm.reset();
             })} className="flex flex-col w-full space-y-1">
+                <div>
+                    {useChatTagList.map((tag) => (
+                        <Badge
+                            key={`tag-${v4()}`}
+                            variant="secondary"
+                            className="p-0 m-0 h-6 px-1 py-1 mx-1"
+                        >
+                            {tag}
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => removeUseChatTag(tag)}
+                                className="p-0 m-0 ml-1 hover:text-destructive"
+                                asChild
+                            >
+                                <X size={14} className="h-full hover:cursor-pointer" />
+                            </Button>
+                        </Badge>
+                    ))}
+                </div>
                 <FormField
                     control={storyForm.control}
                     name="chatMessage"
@@ -86,6 +128,23 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         </FormItem>
                     )}
                 />
+                <div>
+                    <Label className="text-sm">元素:</Label>
+                    {chatTagList.map((tag) => (
+                        <Badge
+                            key={`tag-${v4()}`}
+                            variant="secondary"
+                            className={[
+                                "p-0 m-0 h-6 px-1 py-1 mx-1",
+                                useChatTagList.includes(tag) ? "bg-slate-200 hover:bg-slate-200" : "bg-slate-50 hover:bg-slate-100",
+                                useChatTagList.includes(tag) ? "hover:cursor-not-allowed" : "hover:cursor-pointer"
+                            ].join(" ")}
+                            onClick={handleAddChatTag(tag)}
+                        >
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
                 <div className="flex w-full justify-between items-center">
                     <div className="flex items-center space-x-2">
                         <Button
@@ -93,7 +152,11 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
                             disabled={!selectedStory}
-                            onClick={() => submitMap.current[SubmitAction.storySuggestion]?.({ chatMessage: storyValue }, isDarkModeChat)}
+                            onClick={() => {
+                                handleAddChatTag('Story')();
+                                submitMap.current[SubmitAction.storySuggestion]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat)
+                                storyForm.reset();
+                            }}
                         >
                             產生故事建議
                         </Button>
@@ -102,7 +165,11 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
                             disabled={!selectedStory}
-                            onClick={() => submitMap.current[SubmitAction.storySceneSuggestion]?.({ chatMessage: storyValue }, isDarkModeChat)}
+                            onClick={() => {
+                                handleAddChatTag('Story')();
+                                submitMap.current[SubmitAction.storySceneSuggestion]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat);
+                                storyForm.reset();
+                            }}
                         >
                             產生場景建議
                         </Button>
@@ -141,8 +208,8 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         {!chatSession.isStreaming && chatSession.isStreaming !== undefined && <SendIcon />}
                     </Button>
                 </div>
-            </form>
-        </Form>
+            </form >
+        </Form >
     )
 
 }
