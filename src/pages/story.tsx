@@ -12,7 +12,6 @@ import { ACTIONS_LIST, BODY_PARTS } from "@/constant";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
-import { StoryCollection } from "@/models/story-collection";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { v4 } from "uuid";
@@ -24,31 +23,19 @@ interface StoryPageProps {
 const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const { toast } = useToast();
     const { storyUid } = useParams();
-    const { setStoryState, selectedStory, currentStoryCollectionId, currentStoryCollection, setCurrentStoryUid } = useCurrentStoryStorage();
-
+    const { updateStoryState, selectedStory, setCurrentStoryUid } = useCurrentStoryStorage();
 
     const [bodyPartsList, setBodyPartsList] = useState<string[]>(BODY_PARTS);
     const [actionsList, setActionsList] = useState<string[]>(ACTIONS_LIST);
     const [phrasesList, setPhrasesList] = useState<string[]>([]);
 
 
-    const handleSaveStory = (values: z.infer<typeof StorySchema>) => {
+    const handleSaveStory = async (values: z.infer<typeof StorySchema>) => {
         const saveStory = new Story({ ...values, lastModifiedTimestamp: Date.now() });
-        setStoryState((prev) => {
-            let storyCollection: StoryCollection = { id: "", name: "unorganized", stories: [] };
-            let storyCollectionStories = prev.unorganizedStories;
-            if ((currentStoryCollectionId !== "unorganized") && currentStoryCollection) {
-                storyCollection = currentStoryCollection;
-                storyCollectionStories = currentStoryCollection.stories;
-            }
-            let otherCollections = prev.collections.filter((col) => col.id !== currentStoryCollectionId) || [];
-            const isNewStory = !storyCollectionStories.find((story) => story.uid === saveStory.uid);
-            const otherStories = storyCollectionStories.filter((story) => story.uid !== saveStory.uid);
-            toast({
-                title: `${isNewStory ? "新增故事" : "更新故事"}: ${saveStory.title}`,
-                duration: 2000,
-            });
-            return currentStoryCollectionId === "unorganized" ? { ...prev, unorganizedStories: [...otherStories, saveStory] } : { ...prev, collections: [...otherCollections, { ...storyCollection, stories: [...otherStories, saveStory] }] };
+        const isNewStory = await updateStoryState(saveStory, {});
+        toast({
+            title: `${isNewStory?.isNew ? "新增故事" : "更新故事"}: ${saveStory.title}`,
+            duration: 2000,
         });
         setCurrentStoryUid(saveStory.uid);
     }

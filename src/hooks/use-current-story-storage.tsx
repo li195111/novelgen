@@ -87,6 +87,45 @@ export const useCurrentStoryStorage = () => {
         setCurrentStoryUid("");
     }
 
+    const updateStoryState = (updateStory: Story, update: Partial<Story>) => {
+        if (!updateStory) return;
+        return new Promise<{ isNew: boolean }>((resolve) => {
+            setStoryState((prev) => {
+                const unorganizedStory = prev.unorganizedStories.find(story => story.uid === updateStory.uid);
+                const foundCollection = prev.collections.find(col => col.stories.some(story => story.uid === updateStory.uid));
+                if (unorganizedStory || !foundCollection) {
+                    // If the chat is in unorganized or not found in any collection
+                    if (unorganizedStory) {
+                        // If the chat is found in unorganized, update the chat
+                        resolve({ 'isNew': false });
+                        return { ...prev, unorganizedStories: prev.unorganizedStories.map((story) => story.uid === updateStory.uid ? { ...updateStory, ...update } : story) };
+                    }
+                    // If the chat is not found in unorganized, add it to unorganized
+                    resolve({ 'isNew': true });
+                    return { ...prev, unorganizedStories: [...prev.unorganizedStories, { ...updateStory, ...update }] };
+                }
+                if (!foundCollection) {
+                    resolve({ 'isNew': true });
+                    return prev
+                };
+                const foundCollectionId = foundCollection.id;
+                const otherCollections = prev.collections.filter((col) => col.id !== foundCollectionId) || [];
+                const foundStory = foundCollection.stories.find(story => story.uid === updateStory.uid);
+                // If the chat is found in a collection, update the chat
+                if (foundStory) {
+                    const updatedStories = foundCollection.stories.map(story => story.uid === updateStory.uid ? { ...updateStory, ...update } : story);
+                    resolve({ 'isNew': false });
+                    return { ...prev, collections: [...otherCollections, { ...foundCollection, stories: updatedStories }] };
+                }
+                // If the chat is not found in a collection, add it to the collection
+                const updatedStories = [...foundCollection.stories, { ...updateStory, ...update }];
+                const updatedStoryState = { ...prev, collections: [...otherCollections, { ...foundCollection, stories: updatedStories }] };
+                resolve({ 'isNew': true });
+                return updatedStoryState;
+            });
+        })
+    }
+
     useEffect(() => {
         let story = null;
         let collectionId = "unorganized";
@@ -122,7 +161,7 @@ export const useCurrentStoryStorage = () => {
     }, [currentStoryUid, storyState]);
 
     return {
-        storyState, setStoryState,
+        storyState, setStoryState, updateStoryState,
         selectedStory, setSelectedStory,
         currentStoryUid, setCurrentStoryUid,
         currentStoryCollectionId, setCurrentStoryCollectionId,
