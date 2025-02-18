@@ -16,7 +16,7 @@ export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSessio
     return (
         <CardContent className={[
             "py-1 px-3 max-h-[30rem] overflow-y-auto",
-            isDarkModeChat ? "bg-purple-900 text-white" : 'bg-slate-100 text-black',
+            'bg-slate-100 text-black'
         ].join(' ')} ref={historyRef}>
             {/* 聊天訊息歷史 */}
             <div className="flex flex-col space-y-6 p-4">
@@ -35,12 +35,18 @@ export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSessio
                 <div className="flex flex-col w-full justify-start px-4">
                     {chatSession.isThinking && <ThinkingAccordion think={chatSession.think} isStreaming={chatSession.isStreaming} />}
                     {!chatSession.isThinking && <ThinkAccordion think={chatSession.think} />}
-                    <ResponseBlock message={chatSession.responseResult} />
+                    <ResponseBlock message={chatSession.responseResult}
+                        className={[
+                            'bg-slate-100 text-black',
+                        ].join(' ')} />
                 </div>
             )}
             {!chatSession.isStreaming && chatSession.currentResponse && (
                 <div className="flex p-4">
-                    <ChatMessageBlock handleRegenerate={handleRegenerate} message={chatSession.messages[chatSession.messages.length - 1]} />
+                    <ChatMessageBlock handleRegenerate={handleRegenerate} message={chatSession.messages[chatSession.messages.length - 1]}
+                        className={[
+                            'bg-slate-100 text-black',
+                        ].join(' ')} />
                 </div>
             )}
         </CardContent>

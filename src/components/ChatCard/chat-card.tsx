@@ -107,7 +107,6 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                         ].join(' ')} />
                         <CardFooter className={[
                             "p-2",
-                            isDarkModeChat ? "bg-purple-900 text-white" : 'bg-slate-100 text-black',
                         ].join(' ')}>
                             <StoryChatForm
                                 chatSession={chatSession}
