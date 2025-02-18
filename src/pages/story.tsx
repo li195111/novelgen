@@ -51,7 +51,7 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
                     <StoryForm defaultStory={selectedStory} handleSubmit={handleSaveStory} />
                 </div>
             </Card>
-            <Card>
+            {/* <Card>
                 <div className="flex flex-col px-4 space-y-2">
                     <Accordion type="single" collapsible>
                         <AccordionItem value="item-1">
@@ -78,7 +78,7 @@ const StoryPage: React.FC<StoryPageProps> = ({ }) => {
                         </AccordionItem>
                     </Accordion>
                 </div>
-            </Card>
+            </Card> */}
         </div>
     )
 }

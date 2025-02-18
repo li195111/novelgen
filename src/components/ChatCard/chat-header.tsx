@@ -33,14 +33,14 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({
                 <LucidePencilLine className="w-4 h-4" />
             </Button>
             <div className="flex w-full justify-start space-x-8 pl-4">
-                <div className="flex flex-row space-x-1 items-center justify-self-start">
+                <div className="flex flex-row space-x-1 items-center justify-self-start min-w-max">
                     {currentStoryCollectionId === "unorganized" && <span className="text-xs">未分類</span>}
-                    {currentStoryCollectionId !== "unorganized" && <span className="text-xs">{currentStoryCollection?.name}</span>}
+                    {currentStoryCollectionId !== "unorganized" && <span className="text-xs">{currentStoryCollection?.name.slice(0, 5)}{(currentStoryCollection?.name && currentStoryCollection?.name.length > 5) ? '...' : ''}</span>}
                     <span>{`/`}</span>
-                    {selectedStory && <span className="text-xs">{selectedStory.title}</span>}
+                    {selectedStory && <span className="text-xs">{selectedStory.title.slice(0, 10)}{selectedStory.title.length > 10 ? '...' : ''}</span>}
                 </div>
                 <div className="flex flex-row space-x-1 items-center">
-                    {chatSession.title && <span className="text-xs">{chatSession.title.slice(0, 20)}</span>}
+                    {chatSession.title && <span className="text-xs">{chatSession.title.slice(0, 15)}{chatSession.title.length > 15 ? '...' : ''}</span>}
                     {!chatSession.title && chatSession.isTitleStreaming && <ThinkingDots />}
                 </div>
             </div>
