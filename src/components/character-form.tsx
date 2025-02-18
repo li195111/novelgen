@@ -75,19 +75,19 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
     const handleCharacterOnClick = (character: Character) => {
         setCurrentCharacter(character);
         characterForm.reset({
-            uid: character.uid ?? v4(),
-            name: character.name ?? "",
-            sex: character.sex ?? "male",
-            age: character.age ?? "",
-            height: character.height ?? "",
-            weight: character.weight ?? "",
-            bodyDesc: character.bodyDesc ?? "",
-            job: character.job ?? "",
-            personality: character.personality ?? "",
-            otherDesc: character.otherDesc ?? "",
-            experience: character.experience ?? "",
-            currentStatusDesc: character.currentStatusDesc ?? "",
-            currentScene: character.currentScene ?? "",
+            uid: character.uid,
+            name: character.name,
+            sex: character.sex,
+            age: character.age,
+            height: character.height,
+            weight: character.weight,
+            bodyDesc: character.bodyDesc,
+            job: character.job,
+            personality: character.personality,
+            otherDesc: character.otherDesc,
+            experience: character.experience,
+            currentStatusDesc: character.currentStatusDesc,
+            currentScene: character.currentScene,
         })
     }
 
@@ -141,7 +141,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                                         <FormControl>
                                             <RadioGroup
                                                 onValueChange={field.onChange}
-                                                defaultValue={field.value}
+                                                value={field.value}
                                                 className="flex space-x-1">
                                                 <FormItem className="flex items-center space-x-1">
                                                     <FormControl>
