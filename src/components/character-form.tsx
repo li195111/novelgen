@@ -103,17 +103,19 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
     return (
         <div>
             <div className="flex items-center space-x-2">
-                <Label>角色清單</Label>
-                {Array.from(userCharacterMap.values()).map((c) => (
-                    <Button key={c.name} asChild className="p-0 m-0 h-4">
-                        <Badge
-                            className="bg-slate-500 px-2 py-3 hover:cursor-pointer"
-                            onClick={() => handleCharacterOnClick(c)}
-                        >
-                            {c.name}
-                        </Badge>
-                    </Button>
-                ))}
+                <Label className="min-w-max">角色清單</Label>
+                <div className="flex items-center space-x-2 max-w-[24rem] overflow-x-auto">
+                    {Array.from(userCharacterMap.values()).map((c) => (
+                        <Button key={c.name} asChild className="p-0 m-0 h-4">
+                            <Badge
+                                className="bg-slate-500 px-2 py-3 hover:cursor-pointer"
+                                onClick={() => handleCharacterOnClick(c)}
+                            >
+                                {c.name}
+                            </Badge>
+                        </Button>
+                    ))}
+                </div>
             </div>
             <Form {...characterForm} >
                 <form onSubmit={characterForm.handleSubmit(handleSubmit)} className="space-y-2">
