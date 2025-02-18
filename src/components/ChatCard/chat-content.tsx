@@ -8,12 +8,16 @@ interface ChatContentProps {
     historyRef: React.RefObject<HTMLDivElement>;
     chatSession: ChatSessionState;
     handleRegenerate: () => void;
+    isDarkModeChat?: boolean;
 }
 
-export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSession, handleRegenerate }) => {
+export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSession, handleRegenerate, isDarkModeChat }) => {
 
     return (
-        <CardContent className="py-1 px-3 max-h-[30rem] overflow-y-auto" ref={historyRef}>
+        <CardContent className={[
+            "py-1 px-3 max-h-[30rem] overflow-y-auto",
+            isDarkModeChat ? "bg-purple-900 text-white" : 'bg-slate-100 text-black',
+        ].join(' ')} ref={historyRef}>
             {/* 聊天訊息歷史 */}
             <div className="flex flex-col space-y-6 p-4">
                 {chatSession.messages.map((message, index) => {

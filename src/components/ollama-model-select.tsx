@@ -20,15 +20,16 @@ import { Button } from "./ui/button";
 interface OllamaModelSelectProps {
     model: string
     onChange: (model: string) => void
+    className?: string
 }
 
-export const OllamaModelSelect: React.FC<OllamaModelSelectProps> = ({ model, onChange }) => {
+export const OllamaModelSelect: React.FC<OllamaModelSelectProps> = ({ model, onChange, className }) => {
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState(model ?? "deepseek-r1:32b")
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
+            <PopoverTrigger asChild className={className}>
                 <Button
                     variant="outline"
                     className="px-2 py-0 mr-2 h-6"

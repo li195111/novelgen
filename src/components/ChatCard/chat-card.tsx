@@ -97,10 +97,18 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                         <ChatContent
                             chatSession={chatSession}
                             historyRef={historyRef}
-                            handleRegenerate={handleRegenerate} />
+                            handleRegenerate={handleRegenerate}
+                            isDarkModeChat={isDarkModeChat}
+                        />
                         {/* 輸入表單 */}
-                        <Separator orientation="horizontal" className="border" />
-                        <CardFooter className="p-2">
+                        <Separator orientation="horizontal" className={[
+                            "border",
+                            isDarkModeChat ? "border-purple-950" : 'border-slate-200',
+                        ].join(' ')} />
+                        <CardFooter className={[
+                            "p-2",
+                            isDarkModeChat ? "bg-purple-900 text-white" : 'bg-slate-100 text-black',
+                        ].join(' ')}>
                             <StoryChatForm
                                 chatSession={chatSession}
                                 handleStop={handleStopChat}

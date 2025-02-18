@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatSessionState } from "@/hooks/use-chat-session";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { cn } from "@/lib/utils";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SendIcon, StopCircle, X } from "lucide-react";
@@ -96,14 +97,20 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         <Badge
                             key={`tag-${v4()}`}
                             variant="secondary"
-                            className="p-0 m-0 h-6 px-1 py-1 mx-1"
+                            className={[
+                                "p-0 m-0 h-6 px-1 py-1 mx-1",
+                                isDarkModeChat ? "bg-purple-500 hover:bg-purple-700 text-white" : "bg-slate-300 hover:bg-slate-400 text-black",
+                            ].join(' ')}
                         >
                             {tag}
                             <Button
                                 type="button"
                                 variant="ghost"
                                 onClick={() => removeUseChatTag(tag)}
-                                className="p-0 m-0 ml-1 hover:text-destructive"
+                                className={[
+                                    "p-0 m-0 ml-1 hover:text-destructive",
+                                    "bg-transparent hover:bg-transparent",
+                                ].join(' ')}
                                 asChild
                             >
                                 <X size={14} className="h-full hover:cursor-pointer" />
@@ -118,7 +125,11 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         <FormItem className="flex w-full">
                             <FormControl>
                                 <Textarea
-                                    className="p-0 px-2 min-h-4 h-4 border-0 shadow-none resize-none focus:outline-none focus-visible:ring-0"
+                                    className={[
+                                        "p-0 px-2 min-h-4 h-4 border-0 shadow-none resize-none focus:outline-none focus-visible:ring-0",
+                                        isDarkModeChat ? 'placeholder:text-gray-400' : 'placeholder:text-gray-500',
+
+                                    ].join(' ')}
                                     placeholder="輸入劇情..." {...field}
                                     onKeyDown={handleKeyDown}
                                     ref={chatMessageRef}
@@ -129,16 +140,23 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                     )}
                 />
                 <div>
-                    <Label className="text-sm">元素:</Label>
+                    <Label className="text-sm font-bold">元素:</Label>
                     {chatTagList.map((tag) => (
                         <Badge
                             key={`tag-${v4()}`}
                             variant="secondary"
-                            className={[
+                            className={cn(
                                 "p-0 m-0 h-6 px-1 py-1 mx-1",
-                                useChatTagList.includes(tag) ? "bg-slate-200 hover:bg-slate-200" : "bg-slate-50 hover:bg-slate-100",
-                                useChatTagList.includes(tag) ? "hover:cursor-not-allowed" : "hover:cursor-pointer"
-                            ].join(" ")}
+                                isDarkModeChat ? "bg-purple-500 hover:bg-purple-700 text-white" : "bg-slate-300 hover:bg-slate-400 text-black",
+                                useChatTagList.includes(tag) && [
+                                    isDarkModeChat ? "bg-purple-700 hover:bg-purple-700" : "bg-slate-400 hover:bg-slate-400",
+                                    "hover:cursor-not-allowed"
+                                ],
+                                !useChatTagList.includes(tag) && [
+                                    isDarkModeChat ? "bg-purple-500 hover:bg-purple-700" : "bg-slate-300 hover:bg-slate-400",
+                                    "hover:cursor-pointer"
+                                ]
+                            )}
                             onClick={handleAddChatTag(tag)}
                         >
                             {tag}
@@ -150,7 +168,10 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         <Button
                             type="button"
                             variant="ghost"
-                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            className={[
+                                "rounded-full h-6 text-xs px-2 py-0",
+                                isDarkModeChat ? "bg-purple-500 hover:bg-purple-700 hover:text-white" : "bg-slate-300 hover:bg-slate-400",
+                            ].join(' ')}
                             disabled={!selectedStory}
                             onClick={() => {
                                 handleAddChatTag('Story')();
@@ -163,7 +184,10 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         <Button
                             type="button"
                             variant="ghost"
-                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            className={[
+                                "rounded-full h-6 text-xs px-2 py-0",
+                                isDarkModeChat ? "bg-purple-500 hover:bg-purple-700 hover:text-white" : "bg-slate-300 hover:bg-slate-400",
+                            ].join(' ')}
                             disabled={!selectedStory}
                             onClick={() => {
                                 handleAddChatTag('Story')();
@@ -176,7 +200,10 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         <Button
                             type="button"
                             variant="ghost"
-                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            className={[
+                                "rounded-full h-6 text-xs px-2 py-0",
+                                isDarkModeChat ? "bg-purple-500 hover:bg-purple-700 hover:text-white" : "bg-slate-300 hover:bg-slate-400",
+                            ].join(' ')}
                             disabled={!selectedStory || true}
                         >
                             產生故事大綱
@@ -184,7 +211,10 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         <Button
                             type="button"
                             variant="ghost"
-                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            className={[
+                                "rounded-full h-6 text-xs px-2 py-0",
+                                isDarkModeChat ? "bg-purple-500 hover:bg-purple-700 hover:text-white" : "bg-slate-300 hover:bg-slate-400",
+                            ].join(' ')}
                             disabled={!selectedStory}
                             onClick={() => {
                                 if (!storyForm.getValues('chatMessage')) {
@@ -201,7 +231,10 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                         <Button
                             type="button"
                             variant="ghost"
-                            className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
+                            className={[
+                                "rounded-full h-6 text-xs px-2 py-0",
+                                isDarkModeChat ? "bg-purple-500 hover:bg-purple-700 hover:text-white" : "bg-slate-300 hover:bg-slate-400",
+                            ].join(' ')}
                             disabled={!selectedStory}
                             onClick={() => {
                                 if (!storyForm.getValues('chatMessage')) {
