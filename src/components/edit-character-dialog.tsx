@@ -17,11 +17,18 @@ interface EditCharacterDialogProps {
     onClose: () => void;
     character: Character | null;
     onEdit: (character: Character) => void;
+    onDelete: () => void;
 }
-const EditCharacterDialog: React.FC<EditCharacterDialogProps> = ({ open, onClose, character, onEdit }) => {
+const EditCharacterDialog: React.FC<EditCharacterDialogProps> = ({ open, onClose, character, onEdit, onDelete }) => {
 
     const handleSubmit = (values: z.infer<typeof CharacterSchema>) => {
         onEdit(values);
+    };
+
+    const handleDelete = () => {
+        if (character) {
+            onDelete();
+        }
     };
 
     if (!character) return null;
@@ -33,7 +40,7 @@ const EditCharacterDialog: React.FC<EditCharacterDialogProps> = ({ open, onClose
                     <DialogTitle>編輯角色</DialogTitle>
                 </DialogHeader>
                 <DialogDescription className="p-0 m-0"></DialogDescription>
-                <CharacterForm defaultCharacter={character} handleSubmit={handleSubmit} />
+                <CharacterForm defaultCharacter={character} handleSubmit={handleSubmit} handleDelete={handleDelete} />
             </DialogContent>
         </Dialog>
     );

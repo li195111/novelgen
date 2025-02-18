@@ -17,13 +17,20 @@ interface EditSceneDialogProps {
     onClose: () => void;
     scene: string | null;
     onEdit: (scene: string) => void;
+    onDelete: () => void;
 }
-const EditSceneDialog: React.FC<EditSceneDialogProps> = ({ open, onClose, scene, onEdit }) => {
+const EditSceneDialog: React.FC<EditSceneDialogProps> = ({ open, onClose, scene, onEdit, onDelete }) => {
     const sceneTextareaRef = useRef<HTMLTextAreaElement>(null);
 
     const handleSubmit = () => {
         if (!sceneTextareaRef.current?.value) return;
         onEdit(sceneTextareaRef.current.value);
+    };
+
+    const handleDelete = () => {
+        if (scene) {
+            onDelete();
+        }
     };
 
     if (!scene) return null;
@@ -36,6 +43,7 @@ const EditSceneDialog: React.FC<EditSceneDialogProps> = ({ open, onClose, scene,
                 </DialogHeader>
                 <DialogDescription className="p-0 m-0"></DialogDescription>
                 <Textarea defaultValue={scene} ref={sceneTextareaRef} />
+                <Button type="button" onClick={handleDelete}>刪除</Button>
                 <Button type="button" onClick={handleSubmit}>確認</Button>
             </DialogContent>
         </Dialog>

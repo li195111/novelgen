@@ -5,6 +5,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem
 } from "@/components/ui/sidebar";
+import { DISPLAY_TITLE_LENGTH } from "@/constant";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { Story } from "@/models/story";
 import { Draggable } from '@hello-pangea/dnd';
@@ -45,7 +46,8 @@ export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index, 
                         </div>
                         <SidebarMenuButton asChild className="flex hover:bg-slate-300 focus:bg-slate-300">
                             <Link to={`/story/${story.uid}`}>
-                                {story.title?.slice(0, 6)}
+                                {story.title?.slice(0, DISPLAY_TITLE_LENGTH)}
+                                {story.title?.length > DISPLAY_TITLE_LENGTH && '...'}
                             </Link>
                         </SidebarMenuButton>
                         <DropdownMenu>

@@ -40,9 +40,10 @@ export type CharacterType = z.infer<typeof CharacterSchema>;
 interface CharacterFormProps {
     defaultCharacter?: Character;
     handleSubmit: (values: any) => void;
+    handleDelete?: () => void;
 }
 
-export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, handleSubmit }) => {
+export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, handleSubmit, handleDelete }) => {
     const { storyState } = useCurrentStoryStorage();
     const [currentCharacter, setCurrentCharacter] = useState<Character | null>(defaultCharacter || null);
     const [userCharacterMap, setUserCharacterMap] = useState<Map<string, Character>>(() => {
@@ -286,6 +287,17 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                         )}
                     />
                     <DialogFooter>
+                        <Button
+                            type="button"
+                            className="bg-red-600"
+                            onClick={() => {
+                                if (handleDelete) {
+                                    handleDelete();
+                                }
+                            }}
+                        >
+                            刪除
+                        </Button>
                         <Button type="button" className="bg-green-600" onClick={() => {
                             handleSubmit(characterForm.getValues());
                         }}>

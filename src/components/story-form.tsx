@@ -94,6 +94,14 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
         })
     };
 
+    const handleDeleteCharacter = (character: Character) => {
+        setCharacterList(prev => prev.filter(char => char.uid !== character.uid));
+        toast({
+            title: "刪除角色",
+            description: `刪除角色：${character.name}`,
+        })
+    };
+
     const handleEditCharacterClick = (character: Character) => {
         setSelectedCharacter(character);
         setIsEditCharacterDialogOpen(true);
@@ -120,6 +128,14 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
             title: "修改場景",
             description: `修改場景：${selectedScene}`,
         })
+    }
+
+    const handleDeleteScene = (scene: string) => {
+        setSceneList(prev => prev.filter(s => s !== scene));
+        toast({
+            title: "刪除場景",
+            description: `刪除場景：${scene}`,
+        });
     }
 
     const handleEditSceneClick = (scene: string) => {
@@ -193,6 +209,13 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                 }}
                 character={selectedCharacter}
                 onEdit={handleEditCharacter}
+                onDelete={() => {
+                    setIsEditCharacterDialogOpen(false);
+                    if (selectedCharacter) {
+                        handleDeleteCharacter(selectedCharacter);
+                    }
+                    setSelectedCharacter(null);
+                }}
             />
             <AddSceneDialog
                 open={isAddSceneDialogOpen}
@@ -207,6 +230,13 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                 }}
                 scene={selectedScene}
                 onEdit={handleEditScene}
+                onDelete={() => {
+                    setIsEditSceneDialogOpen(false);
+                    if (selectedScene) {
+                        handleDeleteScene(selectedScene);
+                    }
+                    setSelectedScene(null);
+                }}
             />
             <Form {...storyForm}>
                 <form onSubmit={storyForm.handleSubmit(handleSubmit)} className="space-y-2">

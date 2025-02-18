@@ -6,6 +6,7 @@ export const MODEL_SELECTION = [
 ];
 
 export const MAX_TEAXTAREA_HEIGHT = 300;
+export const DISPLAY_TITLE_LENGTH = 9;
 
 export const DARK_MODE_ELEMENTS = [
   "露出癖",
@@ -103,11 +104,7 @@ export const STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT = (
   elements?: string[]
 ) => `${SYSTEM_PROMPT(darkMode, elements)}
 * 專注於創建引人注目的現實敘事。
-${
-  darkMode
-    ? DARK_MODE_STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT
-    : ""
-}
+${darkMode ? DARK_MODE_STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT : ""}
 * 依據 character 來設計對話
 * 嚴格遵守以敘事方式呈現故事
 * 像內文敘事那樣描述
@@ -118,11 +115,7 @@ export const STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT = (
   elements?: string[]
 ) => `${SYSTEM_PROMPT(darkMode, elements)}
 * 專注於創建引人注目的現實敘事。
-${
-  darkMode
-    ? DARK_MODE_STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT
-    : ""
-}
+${darkMode ? DARK_MODE_STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT : ""}
 * 依據 character 來設計對話
 * 嚴格遵守以敘事方式呈現故事
 * 像內文敘事那樣描述

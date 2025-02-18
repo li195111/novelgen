@@ -196,7 +196,7 @@ export function AppSidebar() {
             <SidebarHeader className="flex items-center justify-center h-16">
                 <Label className="font-black text-xl">Novelgen</Label>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="gap-0 flex">
                 <SidebarGroup>
                     <Button className="w-full" variant="ghost" asChild>
                         <Link to="/">首頁</Link>
@@ -223,7 +223,7 @@ export function AppSidebar() {
                         <SidebarGroupAction onClick={onAddStoryCollectionClick} title="新增故事集">
                             <PlusCircleIcon className="w-4 h-4" />
                         </SidebarGroupAction>
-                        <CollapsibleContent>
+                        <CollapsibleContent className="max-h-[40rem] overflow-y-auto">
                             <DragDropContext onDragEnd={handleDragStoryEnd}>
                                 {/* 故事集區域 */}
                                 {storyState.collections.map(collection => (
@@ -325,7 +325,7 @@ export function AppSidebar() {
                         <SidebarGroupAction title="新增對話集">
                             <PlusCircleIcon className="w-4 h-4" />
                         </SidebarGroupAction>
-                        <CollapsibleContent>
+                        <CollapsibleContent className="max-h-[40rem] overflow-y-auto">
                             <DragDropContext onDragEnd={handleDragChatEnd}>
                                 {/* 對話集區域 */}
                                 {chatState.collections.map(collection => (

@@ -6,6 +6,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem
 } from "@/components/ui/sidebar";
+import { DISPLAY_TITLE_LENGTH } from "@/constant";
 import { useCurrentChatStorage } from "@/hooks/use-current-chat-storage";
 import { Chat } from "@/models/chat";
 import { Draggable } from '@hello-pangea/dnd';
@@ -47,7 +48,8 @@ export const DraggableChatItem: FC<DraggableChatItemProps> = ({ chat, index, onD
                             {/* <Link to={`/chat/${chat.uid}`}> */}
                             <Button variant='link' className="flex items-center justify-start min-w-max"
                                 onClick={() => setCurrentChatUid(chat.uid)}>
-                                {chat.title?.slice(0, 6) ?? '無標題'}
+                                {chat.title?.slice(0, DISPLAY_TITLE_LENGTH) ?? '無標題'}
+                                {(chat.title && chat.title?.length > DISPLAY_TITLE_LENGTH) && '...'}
                             </Button>
                             {/* </Link> */}
                         </SidebarMenuButton>
