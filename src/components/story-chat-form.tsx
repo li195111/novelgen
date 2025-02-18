@@ -1,6 +1,8 @@
 import { SubmitAction } from "@/components/ChatCard/chat-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatSessionState } from "@/hooks/use-chat-session";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
@@ -11,8 +13,6 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import { TypeOf, z } from "zod";
-import { Badge } from "./ui/badge";
-import { Label } from "./ui/label";
 
 export const StoryChatSchema = z.object({
     chatMessage: z.string().nonempty("請輸入劇情內容"),
@@ -177,7 +177,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             type="button"
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
-                            disabled={!selectedStory}
+                            disabled={!selectedStory || true}
                         >
                             產生故事大綱
                         </Button>
@@ -186,6 +186,15 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
                             disabled={!selectedStory}
+                            onClick={() => {
+                                if (!storyForm.getValues('chatMessage')) {
+                                    storyForm.trigger('chatMessage');
+                                    return;
+                                }
+                                handleAddChatTag('Story')();
+                                submitMap.current[SubmitAction.storyContentExtend]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat);
+                                storyForm.reset();
+                            }}
                         >
                             增加以下劇情
                         </Button>
@@ -194,6 +203,15 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             variant="ghost"
                             className="rounded-full bg-slate-200 hover:bg-slate-300 h-6 text-xs px-2 py-0"
                             disabled={!selectedStory}
+                            onClick={() => {
+                                if (!storyForm.getValues('chatMessage')) {
+                                    storyForm.trigger('chatMessage');
+                                    return;
+                                }
+                                handleAddChatTag('Story')();
+                                submitMap.current[SubmitAction.storyContentModifyAndExtend]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat);
+                                storyForm.reset();
+                            }}
                         >
                             改寫並增加後續劇情
                         </Button>

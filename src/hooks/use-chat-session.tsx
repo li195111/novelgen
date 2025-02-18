@@ -1,6 +1,6 @@
 import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
-import { STORY_SCENE_GENERATEOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/constant";
+import { STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SCENE_GENERATEOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { parseResponse } from "@/utils";
@@ -218,6 +218,41 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         updateChatSession({ isStreaming: false });
     }
 
+    const handleStoryContentModifyAndExtend = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => {
+        updateChatSession({ isStreaming: true });
+        const storyContent = `
+        <story>
+        ${story}
+        </story>`;
+        const sysMessages = systemMessage(STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT(darkMode) + storyContent);
+        const newMessages = await appendChatSession(userMessage(`改寫並增加後續劇情: ${values.chatMessage}`), sysMessages)
+        await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
+            (text: string) => updateChatSession({ currentResponse: text }),
+            (text: string) => appendChatResponse('currentResponse', text),
+            toast,
+            abortControllerRef,
+            currentModel
+        )
+        updateChatSession({ isStreaming: false });
+    }
+
+    const handleStoryContentExtend = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => {
+        updateChatSession({ isStreaming: true });
+        const storyContent = `
+        <story>
+        ${story}
+        </story>`;
+        const sysMessages = systemMessage(STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT(darkMode) + storyContent);
+        const newMessages = await appendChatSession(userMessage(`改寫並增加後續劇情: ${values.chatMessage}`), sysMessages)
+        await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
+            (text: string) => updateChatSession({ currentResponse: text }),
+            (text: string) => appendChatResponse('currentResponse', text),
+            toast,
+            abortControllerRef,
+            currentModel
+        )
+        updateChatSession({ isStreaming: false });
+    }
 
     const scrollToBottom = useCallback(() => {
         if (historyRef?.current) {
@@ -271,6 +306,8 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         handleRegenerate,
         handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
+        handleStoryContentModifyAndExtend,
+        handleStoryContentExtend,
         updateChatSession, updateChatSessionDarkMode,
         currentChatUid, setCurrentChatUid,
         currentModel, setCurrentModel,

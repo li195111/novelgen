@@ -45,7 +45,7 @@ export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index, 
                         </div>
                         <SidebarMenuButton asChild className="flex hover:bg-slate-300 focus:bg-slate-300">
                             <Link to={`/story/${story.uid}`}>
-                                {story.title}
+                                {story.title?.slice(0, 6)}
                             </Link>
                         </SidebarMenuButton>
                         <DropdownMenu>

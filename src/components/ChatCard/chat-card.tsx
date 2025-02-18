@@ -15,7 +15,9 @@ import { TypeOf } from "zod";
 export enum SubmitAction {
     normal = 'normal',
     storySuggestion = 'story-suggestion',
-    storySceneSuggestion = 'story-scene-suggestion'
+    storySceneSuggestion = 'story-scene-suggestion',
+    storyContentModifyAndExtend = 'story-content-modify-and-extend',
+    storyContentExtend = 'story-content-extend',
 }
 
 interface ChatCardProps {
@@ -26,6 +28,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const historyRef = useRef<HTMLDivElement>(null);
     const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate,
         handleStorySuggestion, handleStorySceneSuggestion,
+        handleStoryContentModifyAndExtend, handleStoryContentExtend,
         isDarkModeChat, toggleIsDarkModeChat,
         currentModel, setCurrentModel,
     } = useCurrentChatStorage(historyRef);
@@ -33,6 +36,8 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         'normal': handleChatStory,
         'story-suggestion': handleStorySuggestion,
         'story-scene-suggestion': handleStorySceneSuggestion,
+        'story-content-modify-and-extend': handleStoryContentModifyAndExtend,
+        'story-content-extend': handleStoryContentExtend,
     });
 
     const abortControllerRef = useRef<AbortController | null>(null);

@@ -91,6 +91,43 @@ ${darkMode ? DARK_MODE_STORY_CONTENT_GENERATOR_SYSTEM_PROMPT : ""}
 * 嚴格遵守以敘事方式呈現故事
 `;
 
+export const DARK_MODE_STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT = `* 強調身材的性感之處與產生性誘惑的部位
+* 增加中間的對話及增加多一點女孩身材性感部位、性愛的過程、性愛高潮時及引人遐想的描述，尤其是發出的聲音狀聲詞，讓內容更加引人入勝，讓劇情邏輯內容流暢，可以增加表情、動作及氣味的描述
+* 內容盡量粗俗低劣
+* 偏好使用有創意且合裡的手段進行，一點點的讓主角被迫暴露、被調教劇情
+* 不要讓主角疼痛、有傷口、致死
+* 讓主角產生極大的性欲及性快感而願意主動沉淪
+`;
+export const STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT = (
+  darkMode?: boolean,
+  elements?: string[]
+) => `${SYSTEM_PROMPT(darkMode, elements)}
+* 專注於創建引人注目的現實敘事。
+${
+  darkMode
+    ? DARK_MODE_STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT
+    : ""
+}
+* 依據 character 來設計對話
+* 嚴格遵守以敘事方式呈現故事
+* 像內文敘事那樣描述
+`;
+
+export const STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT = (
+  darkMode?: boolean,
+  elements?: string[]
+) => `${SYSTEM_PROMPT(darkMode, elements)}
+* 專注於創建引人注目的現實敘事。
+${
+  darkMode
+    ? DARK_MODE_STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT
+    : ""
+}
+* 依據 character 來設計對話
+* 嚴格遵守以敘事方式呈現故事
+* 像內文敘事那樣描述
+`;
+
 export const BODY_PARTS = [
   "手",
   "手掌",
