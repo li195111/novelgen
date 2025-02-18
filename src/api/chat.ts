@@ -32,7 +32,8 @@ export const handleChat = async (
     | Dispatch<SetStateAction<string>>
     | ((value: string) => void),
   toastCallback?: (props: any) => {},
-  abortControllerRef?: React.MutableRefObject<AbortController | null>
+  abortControllerRef?: React.MutableRefObject<AbortController | null> | null,
+  model?: string
 ) => {
   try {
     if (setResponseCallback) {
@@ -46,7 +47,8 @@ export const handleChat = async (
 
     const response = await handleOllamaChat(
       messages,
-      abortControllerRef?.current?.signal
+      abortControllerRef?.current?.signal,
+      model
     );
 
     if (!response.ok) {

@@ -29,7 +29,12 @@ export function useLocalStorage<T extends StorageValue>(
     const [storedValue, setStoredValue] = useState<T>(() => {
         try {
             const item = window.localStorage.getItem(key);
-            return item ? (JSON.parse(item) as T) : initialValue;
+            if (!item) {
+                // 如果 localStorage 沒有值，則設定初始值
+                window.localStorage.setItem(key, JSON.stringify(initialValue));
+                return initialValue;
+            }
+            return (JSON.parse(item) as T);
         } catch (error) {
             console.error('Error reading localStorage key "${key}":', error);
             return initialValue;

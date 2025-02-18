@@ -1,3 +1,10 @@
+export const MODEL_SELECTION = [
+  'deepseek-r1:7b',
+  'deepseek-r1:8b',
+  'deepseek-r1:14b',
+  'deepseek-r1:32b',
+]
+
 export const MAX_TEAXTAREA_HEIGHT = 300;
 
 export const DARK_MODE_ELEMENTS = [

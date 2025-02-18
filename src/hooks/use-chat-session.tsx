@@ -24,6 +24,7 @@ export interface ChatSessionState {
 
 export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Chat | null, historyRef?: React.RefObject<any>) => {
     const { toast } = useToast();
+    const [currentModel, setCurrentModel] = useLocalStorage<string>('current-model', 'deepseek-r1:32b');
     const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', selectedChat?.uid ?? '');
     const abortControllerRef = useRef<AbortController | null>(null);
     const [chatSession, setChatSession] = useState<ChatSessionState>({
@@ -126,7 +127,8 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => updateChatSession({ currentResponse: text }),
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
-            abortControllerRef
+            abortControllerRef,
+            currentModel,
         );
         updateChatSession({ isStreaming: false });
     }
@@ -138,7 +140,8 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => updateChatSession({ currentResponse: text }),
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
-            abortControllerRef
+            abortControllerRef,
+            currentModel
         );
         updateChatSession({ isStreaming: false });
     };
@@ -153,7 +156,9 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         await handleChat(genChatTitleMessages, "讓 AI 產生對話Title時發生錯誤",
             (text: string) => updateChatSession({ titleResponse: text }),
             (text: string) => appendChatResponse('titleResponse', text),
-            toast
+            toast,
+            null,
+            currentModel
         );
         updateChatSession({ isTitleStreaming: false });
     }
@@ -169,7 +174,8 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => updateChatSession({ currentResponse: text }),
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
-            abortControllerRef
+            abortControllerRef,
+            currentModel
         )
         updateChatSession({ isStreaming: false });
     }
@@ -186,7 +192,8 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => updateChatSession({ currentResponse: text }),
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
-            abortControllerRef
+            abortControllerRef,
+            currentModel
         )
         updateChatSession({ isStreaming: false });
     }
@@ -231,10 +238,6 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         }
     }, [chatSession.titleResponse]);
 
-    useEffect(() => {
-        console.debug('Messages: ', chatSession.messages);
-    }, [chatSession.messages]);
-
     return {
         chatSession, setChatSession,
         resetChatSession,
@@ -244,5 +247,6 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         handleStorySuggestion, handleStorySceneSuggestion,
         updateChatSession, updateChatSessionDarkMode,
         currentChatUid, setCurrentChatUid,
+        currentModel, setCurrentModel,
     };
 };

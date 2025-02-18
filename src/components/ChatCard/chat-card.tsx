@@ -27,6 +27,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate,
         handleStorySuggestion, handleStorySceneSuggestion,
         isDarkModeChat, toggleIsDarkModeChat,
+        currentModel, setCurrentModel,
     } = useCurrentChatStorage(historyRef);
     const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>, darkMode?: boolean) => Promise<void> }>({
         'normal': handleChatStory,
@@ -85,6 +86,8 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                             handleNewChatSession={handleNewChatSession}
                             isDarkModeChat={isDarkModeChat}
                             toggleIsDarkModeChat={toggleIsDarkModeChat}
+                            model={currentModel}
+                            onChange={(model: string) => setCurrentModel(model)}
                         />
                         <ChatContent
                             chatSession={chatSession}

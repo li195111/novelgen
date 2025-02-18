@@ -21,7 +21,8 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
         handleChatStory, handleRegenerate, handleChatTitle,
         handleStorySuggestion, handleStorySceneSuggestion,
         currentChatUid, setCurrentChatUid,
-        updateChatSessionDarkMode
+        updateChatSessionDarkMode,
+        currentModel, setCurrentModel,
     } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], selectedChat, historyRef);
 
     const toggleIsDarkModeChat = () => {
@@ -214,12 +215,6 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
         }
     }, [selectedChat]);
 
-    useEffect(() => {
-        if (!chatSession.isStreaming && !chatSession.isTitleStreaming) {
-            console.debug('Update chatSession', chatSession);
-        }
-    }, [chatSession]);
-
     return {
         chatSession,
         resetCurrentChatSession, updateChatSession,
@@ -233,5 +228,6 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
         isDarkModeChat, toggleIsDarkModeChat,
         handleDeleteCurrentChatCollection,
         handleDeleteSelectedChat,
+        currentModel, setCurrentModel,
     }
 }

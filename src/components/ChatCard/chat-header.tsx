@@ -1,3 +1,4 @@
+import { OllamaModelSelect } from "@/components/ollama-model-select"
 import { ThinkingDots } from "@/components/thinking-dots"
 import { Button } from "@/components/ui/button"
 import { CardHeader } from "@/components/ui/card"
@@ -13,9 +14,14 @@ interface ChatCardHeaderProps {
     handleNewChatSession: () => void
     isDarkModeChat?: boolean
     toggleIsDarkModeChat?: () => void
+    model: string
+    onChange: (model: string) => void
 }
 
-export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, toggleCollapse, handleNewChatSession, isDarkModeChat, toggleIsDarkModeChat }) => {
+export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({
+    chatSession, toggleCollapse, handleNewChatSession, isDarkModeChat, toggleIsDarkModeChat,
+    model, onChange
+}) => {
     const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
     return (
         <CardHeader className="h-8 flex flex-row items-center px-3 py-1 space-y-0 bg-slate-200 rounded-tl-lg rounded-tr-lg">
@@ -33,6 +39,9 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({ chatSession, tog
                     {chatSession.title && <span className="text-xs text-gray-500">{chatSession.title.slice(0, 20)}</span>}
                     {!chatSession.title && chatSession.isTitleStreaming && <ThinkingDots />}
                 </div>
+            </div>
+            <div className="flex flex-row items-center space-x-2">
+                <OllamaModelSelect model={model} onChange={onChange} />
             </div>
             {toggleIsDarkModeChat && (
                 <div className="flex items-center mr-2">
