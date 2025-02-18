@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog";
@@ -33,6 +34,7 @@ const EditSceneDialog: React.FC<EditSceneDialogProps> = ({ open, onClose, scene,
                 <DialogHeader>
                     <DialogTitle>編輯場景</DialogTitle>
                 </DialogHeader>
+                <DialogDescription className="p-0 m-0"></DialogDescription>
                 <Textarea defaultValue={scene} ref={sceneTextareaRef} />
                 <Button type="button" onClick={handleSubmit}>確認</Button>
             </DialogContent>

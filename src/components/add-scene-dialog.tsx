@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog";
@@ -30,6 +31,7 @@ const AddSceneDialog: React.FC<AddSceneDialogProps> = ({ open, onClose, onAdd })
                 <DialogHeader>
                     <DialogTitle>新增場景</DialogTitle>
                 </DialogHeader>
+                <DialogDescription className="p-0 m-0"></DialogDescription>
                 <Textarea ref={sceneTextareaRef} />
                 <Button type="button" onClick={handleSubmit}>確認</Button>
             </DialogContent>
