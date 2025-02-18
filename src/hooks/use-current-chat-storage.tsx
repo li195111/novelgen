@@ -162,17 +162,26 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
             const unorganizedChat = prev.unorganizedStories.find(chat => chat.uid === selectedChat.uid);
             const foundCollection = prev.collections.find(col => col.chats.some(chat => chat.uid === selectedChat.uid));
             if (unorganizedChat || !foundCollection) {
-                const otherChats = prev.unorganizedStories.filter(chat => chat.uid !== selectedChat.uid);
-                return { ...prev, unorganizedStories: [...otherChats, selectedChat] };
+                // If the chat is in unorganized or not found in any collection
+                if (unorganizedChat) {
+                    // If the chat is found in unorganized, update the chat
+                    return { ...prev, unorganizedStories: prev.unorganizedStories.map((chat) => chat.uid === selectedChat.uid ? selectedChat : chat) };
+                }
+                // If the chat is not found in unorganized, add it to unorganized
+                return { ...prev, unorganizedStories: [...prev.unorganizedStories, selectedChat] };
             }
             if (!foundCollection) return prev;
             const foundCollectionId = foundCollection.id;
-            const otherCollections = prev.collections.filter((col) => col.id !== foundCollection?.id) || [];
-            const otherChats = foundCollection?.chats.filter(chat => chat.uid !== selectedChat?.uid) ?? prev.unorganizedStories.filter(chat => chat.uid !== selectedChat?.uid);
-            const updatedChats = [...otherChats, selectedChat];
-            const updatedChatState = foundCollectionId === "unorganized"
-                ? { ...prev, unorganizedStories: updatedChats }
-                : { ...prev, collections: [...otherCollections, { ...foundCollection, chats: updatedChats }] };
+            const otherCollections = prev.collections.filter((col) => col.id !== foundCollectionId) || [];
+            const foundChat = foundCollection.chats.find(chat => chat.uid === selectedChat.uid);
+            // If the chat is found in a collection, update the chat
+            if (foundChat) {
+                const updatedChats = foundCollection.chats.map(chat => chat.uid === selectedChat.uid ? selectedChat : chat);
+                return { ...prev, collections: [...otherCollections, { ...foundCollection, chats: updatedChats }] };
+            }
+            // If the chat is not found in a collection, add it to the collection
+            const updatedChats = [...foundCollection.chats, selectedChat];
+            const updatedChatState = { ...prev, collections: [...otherCollections, { ...foundCollection, chats: updatedChats }] };
             return updatedChatState;
         });
 
