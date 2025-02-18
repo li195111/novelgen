@@ -61,7 +61,12 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     };
 
     useEffect(() => {
-        setCurrentChatUid(chatUid ?? "");
+        if (chatUid) {
+            setCurrentChatUid(chatUid);
+        }
+        else {
+            resetCurrentChatSession();
+        }
     }, [chatUid])
 
     return (

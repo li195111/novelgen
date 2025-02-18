@@ -23,7 +23,8 @@ export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSessio
                 {chatSession.messages.map((message, index) => {
                     if (message.role !== 'system') {
                         if ((index !== chatSession.messages.length - 1) || (index === chatSession.messages.length - 1 && message.role === 'user')) {
-                            return <ChatMessageBlock handleRegenerate={handleRegenerate} message={message} key={`${message.uid}-${message.timestamp}`} />
+                            return <ChatMessageBlock handleRegenerate={handleRegenerate} message={message} key={`${message.uid}-${message.timestamp}`}
+                                className={['bg-white text-black'].join(' ')} />
                         }
                     }
                 }
@@ -36,17 +37,13 @@ export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSessio
                     {chatSession.isThinking && <ThinkingAccordion think={chatSession.think} isStreaming={chatSession.isStreaming} />}
                     {!chatSession.isThinking && <ThinkAccordion think={chatSession.think} />}
                     <ResponseBlock message={chatSession.responseResult}
-                        className={[
-                            'bg-slate-100 text-black',
-                        ].join(' ')} />
+                        className={['bg-slate-100 text-black'].join(' ')} />
                 </div>
             )}
             {!chatSession.isStreaming && chatSession.currentResponse && (
                 <div className="flex p-4">
                     <ChatMessageBlock handleRegenerate={handleRegenerate} message={chatSession.messages[chatSession.messages.length - 1]}
-                        className={[
-                            'bg-slate-100 text-black',
-                        ].join(' ')} />
+                        className={['bg-slate-100 text-black'].join(' ')} />
                 </div>
             )}
         </CardContent>

@@ -261,10 +261,13 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     }, []);
 
     useEffect(() => {
-        if (!chatSession.isTitleStreaming) {
-            scrollToBottom();
+        if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'user') {
+            // AI 回應完畢, 儲存 AI 的完整回應
+            appendAssistantMessage();
         }
+    }, [chatSession.messages, chatSession.isStreaming]);
 
+    useEffect(() => {
         if (!chatSession.currentResponse) return;
 
         const parsed = parseResponse(chatSession.currentResponse, ["think"]);
@@ -276,16 +279,19 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             });
         }
 
-        if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'user') {
-            // AI 回應完畢, 儲存 AI 的完整回應
-            appendAssistantMessage();
+    }, [chatSession.currentResponse])
 
-            // 給予對話標題
-            if (!chatSession.title && !chatSession.isTitleStreaming) {
-                handleChatTitle()
-            }
+    useEffect(() => {
+        if (!chatSession.isTitleStreaming) {
+            scrollToBottom();
         }
-    }, [chatSession.messages, chatSession.currentResponse, chatSession.isStreaming, chatSession.isTitleStreaming, chatSession.title]);
+        // 給予對話標題
+        if (!chatSession.title && !chatSession.isTitleStreaming && chatSession.messages.at(-1)?.role === 'assistant') {
+            handleChatTitle()
+        }
+
+    }, [chatSession.messages, chatSession.isTitleStreaming, chatSession.title])
+
 
     useEffect(() => {
         if (!chatSession.titleResponse) return;

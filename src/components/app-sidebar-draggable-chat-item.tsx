@@ -20,7 +20,7 @@ interface DraggableChatItemProps {
 }
 
 export const DraggableChatItem: FC<DraggableChatItemProps> = ({ chat, index, onDelete }) => {
-    const { selectedChat, setCurrentChatUid } = useCurrentChatStorage();
+    const { selectedChat, setSelectedChat } = useCurrentChatStorage();
     return (
         <Draggable
             key={`chat-${chat.uid}`}
@@ -47,7 +47,7 @@ export const DraggableChatItem: FC<DraggableChatItemProps> = ({ chat, index, onD
                         <SidebarMenuButton asChild className="flex hover:bg-slate-300 focus:bg-slate-300">
                             {/* <Link to={`/chat/${chat.uid}`}> */}
                             <Button variant='link' className="flex items-center justify-start min-w-max"
-                                onClick={() => setCurrentChatUid(chat.uid)}>
+                                onClick={() => setSelectedChat(chat)}>
                                 {chat.title?.slice(0, DISPLAY_TITLE_LENGTH) ?? '無標題'}
                                 {(chat.title && chat.title?.length > DISPLAY_TITLE_LENGTH) && '...'}
                             </Button>

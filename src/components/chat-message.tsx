@@ -29,7 +29,7 @@ export const ChatMessageBlock: React.FC<ChatMessageBlockProps> = ({ message, han
     return (
         <div className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`} key={`${message.uid}-${message.timestamp}`} >
             <div className={[
-                message.role === 'assistant' && 'w-full text-white',
+                message.role === 'assistant' && 'w-full bg-slate-100 text-white',
                 message.role === 'user' && 'px-4 py-1 rounded-lg bg-white dark:bg-slate-800',
                 'min-h-4 border-0 shadow-none resize-none focus-visible:ring-0 overflow-hidden bg-transparent',
                 className

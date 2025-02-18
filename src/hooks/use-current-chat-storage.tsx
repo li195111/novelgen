@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection } from "@/models/chat-collection";
 import { parseResponse } from "@/utils";
-import { SetStateAction, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
 
 export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
@@ -16,7 +16,7 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
     const [currentChatCollection, setCurrentChatCollection] = useState<ChatCollection | null>(null);
-    const [reTitleStreaming, setReTitleStreaming] = useState(false);
+    const reTitleStreamingRef = useRef(false);
 
     const { chatSession, setChatSession, updateChatSession, resetChatSession,
         handleChatStory, handleRegenerate, handleChatTitle, handleChatTitleSingle,
@@ -113,30 +113,46 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     const updateChatState = (updateChat: Chat, update: Partial<Chat>) => {
         if (!updateChat) return;
         setChatState((prev) => {
-            const unorganizedChat = prev.unorganizedStories.find(chat => chat.uid === updateChat.uid);
-            const foundCollection = prev.collections.find(col => col.chats.some(chat => chat.uid === updateChat.uid));
-            if (unorganizedChat || !foundCollection) {
-                // If the chat is in unorganized or not found in any collection
-                if (unorganizedChat) {
-                    // If the chat is found in unorganized, update the chat
-                    return { ...prev, unorganizedStories: prev.unorganizedStories.map((chat) => chat.uid === updateChat.uid ? { ...updateChat, ...update } : chat) };
-                }
-                // If the chat is not found in unorganized, add it to unorganized
-                return { ...prev, unorganizedStories: [...prev.unorganizedStories, { ...updateChat, ...update }] };
+            // Try to find chat in unorganized stories
+            const unorganizedIndex = prev.unorganizedStories.findIndex(chat => chat.uid === updateChat.uid);
+            if (unorganizedIndex !== -1) {
+                const updatedUnorganized = [...prev.unorganizedStories];
+                updatedUnorganized[unorganizedIndex] = { ...updateChat, ...update };
+                return { ...prev, unorganizedStories: updatedUnorganized };
             }
-            if (!foundCollection) return prev;
-            const foundCollectionId = foundCollection.id;
-            const otherCollections = prev.collections.filter((col) => col.id !== foundCollectionId) || [];
-            const foundChat = foundCollection.chats.find(chat => chat.uid === updateChat.uid);
-            // If the chat is found in a collection, update the chat
-            if (foundChat) {
-                const updatedChats = foundCollection.chats.map(chat => chat.uid === updateChat.uid ? { ...updateChat, ...update } : chat);
-                return { ...prev, collections: [...otherCollections, { ...foundCollection, chats: updatedChats }] };
+
+            // Try to find chat in collections
+            const collectionIndex = prev.collections.findIndex(col =>
+                col.chats.some(chat => chat.uid === updateChat.uid)
+            );
+
+            if (collectionIndex === -1) {
+                // Chat not found anywhere, add to unorganized
+                return {
+                    ...prev,
+                    unorganizedStories: [...prev.unorganizedStories, { ...updateChat, ...update }]
+                };
             }
-            // If the chat is not found in a collection, add it to the collection
-            const updatedChats = [...foundCollection.chats, { ...updateChat, ...update }];
-            const updatedChatState = { ...prev, collections: [...otherCollections, { ...foundCollection, chats: updatedChats }] };
-            return updatedChatState;
+
+            // Update chat in collection
+            const updatedCollections = [...prev.collections];
+            const chatIndex = updatedCollections[collectionIndex].chats
+                .findIndex(chat => chat.uid === updateChat.uid);
+
+            if (chatIndex !== -1) {
+                updatedCollections[collectionIndex] = {
+                    ...updatedCollections[collectionIndex],
+                    chats: [...updatedCollections[collectionIndex].chats]
+                };
+                updatedCollections[collectionIndex].chats[chatIndex] = { ...updateChat, ...update };
+            } else {
+                updatedCollections[collectionIndex] = {
+                    ...updatedCollections[collectionIndex],
+                    chats: [...updatedCollections[collectionIndex].chats, { ...updateChat, ...update }]
+                };
+            }
+
+            return { ...prev, collections: updatedCollections };
         });
     }
 
@@ -153,100 +169,100 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
     }, [chatSession.messages, chatSession.title]);
 
     useEffect(() => {
-        let chat: SetStateAction<Chat | null> = null;
-        let collectionId = "unorganized";
-        let chatCollection: ChatCollection | null = null;
-        if (currentChatUid) {
-            chatCollection = { id: "", name: "unorganized", chats: [] };
-            const foundUnorganizedChat = chatState.unorganizedStories.find((chat) => chat.uid === currentChatUid);
-            if (!foundUnorganizedChat) {
-                const foundCollection = chatState.collections.find((collection) =>
-                    collection.chats.some((chat) => chat.uid === currentChatUid)
-                );
-                if (foundCollection) {
-                    chatCollection = foundCollection;
-                    collectionId = foundCollection.id;
-                    chat = foundCollection.chats.find((chat) => chat.uid === currentChatUid)!;
-                }
-            }
-            else {
-                chat = foundUnorganizedChat;
+        const findChat = (chatUid: string) => {
+            // Check unorganized stories first
+            const foundUnorganizedChat = chatState.unorganizedStories.find(
+                (chat) => chat.uid === chatUid
+            );
+            if (foundUnorganizedChat) {
+                return {
+                    chat: foundUnorganizedChat,
+                    collection: { id: "unorganized", name: "unorganized", chats: [] },
+                    collectionId: "unorganized"
+                };
             }
 
-            if (chat) {
-                setSelectedChat(chat);
-                setCurrentChatCollectionId(collectionId);
-                setCurrentChatCollection(chatCollection);
+            // Check collections
+            const foundCollection = chatState.collections.find((collection) =>
+                collection.chats.some((chat) => chat.uid === chatUid)
+            );
+            if (foundCollection) {
+                const chat = foundCollection.chats.find((chat) => chat.uid === chatUid)!;
+                return {
+                    chat,
+                    collection: foundCollection,
+                    collectionId: foundCollection.id
+                };
             }
-        }
-        else {
+
+            return {
+                chat: null,
+                collection: null,
+                collectionId: "unorganized"
+            };
+        };
+
+        if (currentChatUid) {
+            const { chat, collection, collectionId } = findChat(currentChatUid);
             setSelectedChat(chat);
+            setCurrentChatCollection(collection);
             setCurrentChatCollectionId(collectionId);
-            setCurrentChatCollection(chatCollection);
+        } else {
+            setSelectedChat(null);
+            setCurrentChatCollection(null);
+            setCurrentChatCollectionId("unorganized");
         }
     }, [currentChatUid, chatState]);
 
 
     useEffect(() => {
-        if (!selectedChat) return;
-        if (chatSession.uid === selectedChat.uid) return;
-        if (!selectedChat.title && selectedChat.messages) {
-            if (reTitleStreaming || chatSession.isStreaming || chatSession.isTitleStreaming) return;
+        if (!selectedChat || chatSession.uid === selectedChat.uid) return;
+
+        const handleChatWithoutTitle = async () => {
+            if (!selectedChat.messages || reTitleStreamingRef.current || chatSession.isStreaming || chatSession.isTitleStreaming) return;
+
             console.debug('Selected chat without title, trying to re-title');
-            setReTitleStreaming(true);
-            handleChatTitleSingle(selectedChat.messages, (text: string) => { }, (text: string) => { })
-                .then((titleResponse) => {
-                    const parsed = parseResponse(titleResponse, ["title"]);
-                    if (parsed?.title) {
-                        const lastAssistantMessage = selectedChat.messages?.filter(mes => mes.role === 'assistant').at(-1)?.content ?? '';
-                        const parsedResponse = parseResponse(lastAssistantMessage, ['think']);
-                        if (parsedResponse.response) {
-                            updateChatState(selectedChat, { title: parsed.title });
-                            setChatSession((prev) => ({
-                                ...prev,
-                                uid: selectedChat.uid,
-                                messages: selectedChat.messages ?? [],
-                                title: parsed.title,
-                                titleResponse: titleResponse,
-                                think: parsedResponse.think,
-                                responseResult: parsedResponse.response,
-                            }));
-                        }
-                    }
-                })
-                .finally(() => {
-                    setReTitleStreaming(false);
-                });
-            return;
-        }
-        updateChatState(selectedChat, {});
-        const lastAssistantMessage = selectedChat.messages?.filter(mes => mes.role === 'assistant').at(-1)?.content ?? '';
-        const parsedResponse = parseResponse(lastAssistantMessage, ['think']);
-        if (parsedResponse.response) {
-            setChatSession((prev) => {
-                let update = {
+            reTitleStreamingRef.current = true;
+
+            const titleResponse = await handleChatTitleSingle(selectedChat.messages, () => { }, () => { });
+            const parsed = parseResponse(titleResponse, ["title"]);
+
+            if (parsed?.title) {
+                const lastAssistantMessage = selectedChat.messages?.filter(mes => mes.role === 'assistant').at(-1)?.content ?? '';
+                const parsedResponse = parseResponse(lastAssistantMessage, ['think']);
+
+                if (parsedResponse.response) {
+                    updateChatState(selectedChat, { title: parsed.title });
+                    reTitleStreamingRef.current = false;
+                }
+            }
+        };
+
+        const updateChatSessionWithSelectedChat = () => {
+            const lastAssistantMessage = selectedChat.messages?.filter(mes => mes.role === 'assistant').at(-1)?.content ?? '';
+            const parsedResponse = parseResponse(lastAssistantMessage, ['think']);
+
+            if (parsedResponse.response) {
+                setChatSession(prev => ({
                     ...prev,
                     uid: selectedChat.uid,
                     title: selectedChat.title ?? '',
                     messages: selectedChat.messages ?? [],
                     think: parsedResponse.think,
                     responseResult: parsedResponse.response,
-                }
-                if (!prev.titleResponse) {
-                    update = {
-                        ...update,
-                        titleResponse: `<title>${selectedChat.title}</title>`
-                    }
-                }
-                if (!prev.currentResponse) {
-                    update = {
-                        ...update,
-                        currentResponse: `<think>${parsedResponse.think}</think>${parsedResponse.response}`
-                    }
-                }
-                return update;
-            })
+                    titleResponse: prev.titleResponse || `<title>${selectedChat.title}</title>`,
+                    currentResponse: prev.currentResponse || `<think>${parsedResponse.think}</think>${parsedResponse.response}`
+                }));
+            }
+        };
+
+        if (!selectedChat.title && selectedChat.messages && selectedChat.messages.at(-1)?.role === 'assistant') {
+            handleChatWithoutTitle();
+            return;
         }
+
+        updateChatState(selectedChat, {});
+        updateChatSessionWithSelectedChat();
     }, [selectedChat]);
 
     return {
