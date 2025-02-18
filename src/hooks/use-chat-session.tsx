@@ -261,6 +261,9 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     }, []);
 
     useEffect(() => {
+        if (chatSession.isStreaming) {
+            scrollToBottom();
+        }
         if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'user') {
             // AI 回應完畢, 儲存 AI 的完整回應
             appendAssistantMessage();

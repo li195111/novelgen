@@ -5,8 +5,8 @@ import { CardContent } from "@/components/ui/card";
 import { ChatSessionState } from "@/hooks/use-chat-session";
 
 interface ChatContentProps {
-    historyRef: React.RefObject<HTMLDivElement>;
     chatSession: ChatSessionState;
+    historyRef: React.RefObject<HTMLDivElement>;
     handleRegenerate: () => void;
     isDarkModeChat?: boolean;
 }

@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection } from "@/models/chat-collection";
 import { parseResponse } from "@/utils";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
 
 export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
@@ -168,40 +168,40 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
         }
     }, [chatSession.messages, chatSession.title]);
 
-    useEffect(() => {
-        const findChat = (chatUid: string) => {
-            // Check unorganized stories first
-            const foundUnorganizedChat = chatState.unorganizedStories.find(
-                (chat) => chat.uid === chatUid
-            );
-            if (foundUnorganizedChat) {
-                return {
-                    chat: foundUnorganizedChat,
-                    collection: { id: "unorganized", name: "unorganized", chats: [] },
-                    collectionId: "unorganized"
-                };
-            }
-
-            // Check collections
-            const foundCollection = chatState.collections.find((collection) =>
-                collection.chats.some((chat) => chat.uid === chatUid)
-            );
-            if (foundCollection) {
-                const chat = foundCollection.chats.find((chat) => chat.uid === chatUid)!;
-                return {
-                    chat,
-                    collection: foundCollection,
-                    collectionId: foundCollection.id
-                };
-            }
-
+    const findChat = useCallback((chatUid: string) => {
+        // Check unorganized stories first
+        const foundUnorganizedChat = chatState.unorganizedStories.find(
+            (chat) => chat.uid === chatUid
+        );
+        if (foundUnorganizedChat) {
             return {
-                chat: null,
-                collection: null,
+                chat: foundUnorganizedChat,
+                collection: { id: "unorganized", name: "unorganized", chats: [] },
                 collectionId: "unorganized"
             };
-        };
+        }
 
+        // Check collections
+        const foundCollection = chatState.collections.find((collection) =>
+            collection.chats.some((chat) => chat.uid === chatUid)
+        );
+        if (foundCollection) {
+            const chat = foundCollection.chats.find((chat) => chat.uid === chatUid)!;
+            return {
+                chat,
+                collection: foundCollection,
+                collectionId: foundCollection.id
+            };
+        }
+
+        return {
+            chat: null,
+            collection: null,
+            collectionId: "unorganized"
+        };
+    }, [chatState]);
+
+    useEffect(() => {
         if (currentChatUid) {
             const { chat, collection, collectionId } = findChat(currentChatUid);
             setSelectedChat(chat);
@@ -212,7 +212,7 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
             setCurrentChatCollection(null);
             setCurrentChatCollectionId("unorganized");
         }
-    }, [currentChatUid, chatState]);
+    }, [currentChatUid]);
 
 
     useEffect(() => {
@@ -260,6 +260,7 @@ export const useCurrentChatStorage = (historyRef?: React.RefObject<any>) => {
             handleChatWithoutTitle();
             return;
         }
+        if (chatSession.isStreaming || chatSession.isTitleStreaming) return;
 
         updateChatState(selectedChat, {});
         updateChatSessionWithSelectedChat();
