@@ -1,9 +1,9 @@
-import { SYSTEM_PROMPT } from "@/constant";
 import { useChatSession } from "@/hooks/use-chat-session";
 import { useLocalStorage } from "@/hooks/use-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection, RootChatState } from "@/models/chat-collection";
+import { SYSTEM_PROMPT } from "@/prompts";
 import { parseResponse } from "@/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
@@ -58,7 +58,7 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
 
             return {
                 ...prev,
-                unorganizedStories: [...prev.unorganizedStories, ...collection.chats],
+                unorganizedStories: [...prev.unorganizedStories, ...collection.chats].sort((a, b) => (b.createTimestamp || 0) - (a.createTimestamp || 0)),
                 collections: prev.collections.filter(c => c.id !== currentChatCollection?.id)
             };
         });
@@ -98,10 +98,10 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
             }
             if (chat) {
                 if (collectionId === "unorganized") {
-                    return { ...prev, unorganizedStories: [...otherChats] };
+                    return { ...prev, unorganizedStories: [...otherChats].sort((a, b) => (b.createTimestamp || 0) - (a.createTimestamp || 0)) };
                 }
                 else {
-                    return { ...prev, collections: [...otherCollections, { ...chatCollection, chats: [...otherChats] }] };
+                    return { ...prev, collections: [...otherCollections, { ...chatCollection, chats: [...otherChats].sort((a, b) => (b.createTimestamp || 0) - (a.createTimestamp || 0)) }] };
                 }
             }
             return prev;
@@ -119,8 +119,9 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
             // Try to find chat in unorganized stories
             const unorganizedIndex = prev.unorganizedStories.findIndex(chat => chat.uid === updateChat.uid);
             if (unorganizedIndex !== -1) {
-                const updatedUnorganized = [...prev.unorganizedStories];
+                let updatedUnorganized = [...prev.unorganizedStories];
                 updatedUnorganized[unorganizedIndex] = { ...updateChat, ...update };
+                updatedUnorganized = updatedUnorganized.sort((a, b) => (b.createTimestamp || 0) - (a.createTimestamp || 0));
                 return { ...prev, unorganizedStories: updatedUnorganized };
             }
 
@@ -133,7 +134,7 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
                 // Chat not found anywhere, add to unorganized
                 return {
                     ...prev,
-                    unorganizedStories: [...prev.unorganizedStories, { ...updateChat, ...update }]
+                    unorganizedStories: [...prev.unorganizedStories, { ...updateChat, ...update }].sort((a, b) => (b.createTimestamp || 0) - (a.createTimestamp || 0))
                 };
             }
 
@@ -148,11 +149,13 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
                     chats: [...updatedCollections[collectionIndex].chats]
                 };
                 updatedCollections[collectionIndex].chats[chatIndex] = { ...updateChat, ...update };
+                updatedCollections[collectionIndex].chats = updatedCollections[collectionIndex].chats.sort((a, b) => (b.createTimestamp || 0) - (a.createTimestamp || 0));
             } else {
                 updatedCollections[collectionIndex] = {
                     ...updatedCollections[collectionIndex],
                     chats: [...updatedCollections[collectionIndex].chats, { ...updateChat, ...update }]
                 };
+                updatedCollections[collectionIndex].chats = updatedCollections[collectionIndex].chats.sort((a, b) => (b.createTimestamp || 0) - (a.createTimestamp || 0));
             }
 
             return { ...prev, collections: updatedCollections };
