@@ -17,7 +17,7 @@ import {
     SidebarMenuButton
 } from "@/components/ui/sidebar";
 import { useChatStorage } from "@/hooks/use-chat-storage";
-import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { Chat } from "@/models/chat";
 import { ChatCollection } from "@/models/chat-collection";
 import { Story } from "@/models/story";
@@ -33,7 +33,7 @@ import { DeleteChatCollectionAlertDialog } from "./delete-chat-collection-alert-
 
 export function AppSidebar() {
     const { storyState, setStoryState, selectedStory, setCurrentStoryUid, currentStoryCollection, setCurrentStoryCollection,
-        handleAddStoryCollection, handleDeleteSelectedStory, handleDeleteCurrentStoryCollection } = useCurrentStoryStorage();
+        handleAddStoryCollection, handleDeleteSelectedStory, handleDeleteCurrentStoryCollection } = useStoryStorage();
     const [deleteCollectionAlertOpen, setDeleteCollectionAlertOpen] = useState(false);
     const [deleteStoryAlertOpen, setDeleteStoryAlertOpen] = useState(false);
 

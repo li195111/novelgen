@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ACTIONS_LIST, BODY_PARTS } from "@/constant";
-import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Story } from "@/models/story";
 import { useEffect, useState } from "react";
@@ -23,7 +23,7 @@ interface StoryPageProps {
 const StoryPage: React.FC<StoryPageProps> = ({ }) => {
     const { toast } = useToast();
     const { storyUid } = useParams();
-    const { updateStoryState, selectedStory, setCurrentStoryUid } = useCurrentStoryStorage();
+    const { updateStoryState, selectedStory, setCurrentStoryUid } = useStoryStorage();
 
     const [bodyPartsList, setBodyPartsList] = useState<string[]>(BODY_PARTS);
     const [actionsList, setActionsList] = useState<string[]>(ACTIONS_LIST);

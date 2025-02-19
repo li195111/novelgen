@@ -1,4 +1,4 @@
-import { useCurrentStoryStorage } from '@/hooks/use-current-story-storage';
+import { useStoryStorage } from '@/hooks/use-story-storage';
 import React, { useEffect } from 'react';
 
 
@@ -6,7 +6,7 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ }) => {
-    const { setCurrentStoryUid } = useCurrentStoryStorage();
+    const { setCurrentStoryUid } = useStoryStorage();
 
     useEffect(() => {
         setCurrentStoryUid('');

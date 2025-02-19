@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { Character } from "@/models/character";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
@@ -44,7 +44,7 @@ interface CharacterFormProps {
 }
 
 export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, handleSubmit, handleDelete }) => {
-    const { storyState } = useCurrentStoryStorage();
+    const { storyState } = useStoryStorage();
     const [currentCharacter, setCurrentCharacter] = useState<Character | null>(defaultCharacter || null);
     const [userCharacterMap, setUserCharacterMap] = useState<Map<string, Character>>(() => {
         const initialMap = new Map<string, Character>();

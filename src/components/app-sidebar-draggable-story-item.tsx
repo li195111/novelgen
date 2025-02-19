@@ -6,7 +6,7 @@ import {
     SidebarMenuItem
 } from "@/components/ui/sidebar";
 import { DISPLAY_TITLE_LENGTH } from "@/constant";
-import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { Story } from "@/models/story";
 import { Draggable } from '@hello-pangea/dnd';
 import { GripVertical, MoreHorizontal, Trash2Icon } from "lucide-react";
@@ -20,7 +20,7 @@ interface DraggableStoryItemProps {
 }
 
 export const DraggableStoryItem: FC<DraggableStoryItemProps> = ({ story, index, onDelete }) => {
-    const { selectedStory } = useCurrentStoryStorage();
+    const { selectedStory } = useStoryStorage();
     return (
         <Draggable
             key={`story-${story.uid}`}

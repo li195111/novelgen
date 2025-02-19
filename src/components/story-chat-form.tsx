@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatSessionState } from "@/hooks/use-chat-session";
-import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
+import { useStoryStorage } from "@/hooks/use-story-storage";
 import { cn } from "@/lib/utils";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,7 +32,7 @@ interface StoryChatFormProps {
 }
 
 export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, submitMap, isDarkModeChat }) => {
-    const { selectedStory } = useCurrentStoryStorage();
+    const { selectedStory } = useStoryStorage();
     const [storyValue, setStoryValue] = useState<string>('');
     const [chatTagList, setChatTagList] = useState<(string | ChatTag)[]>(['Story']);
     const [useChatTagList, setUseChatTagList] = useState<(string | ChatTag)[]>([]);

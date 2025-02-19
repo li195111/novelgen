@@ -5,7 +5,7 @@ import { CardHeader } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { ChatSessionState } from "@/hooks/use-chat-session"
-import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage"
+import { useStoryStorage } from "@/hooks/use-story-storage"
 import { ChevronDownIcon, LucidePencilLine } from "lucide-react"
 
 interface ChatCardHeaderProps {
@@ -22,7 +22,7 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({
     chatSession, toggleCollapse, handleNewChatSession, isDarkModeChat, toggleIsDarkModeChat,
     model, onChange
 }) => {
-    const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useCurrentStoryStorage();
+    const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useStoryStorage();
     return (
         <CardHeader className={[
             "h-8 flex flex-row items-center px-3 py-1 space-y-0",
