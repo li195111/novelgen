@@ -4,6 +4,7 @@ import { parseResponse } from "@/utils";
 import { RefreshCw } from "lucide-react";
 import ThinkAccordion from "./think-accordion";
 import { Button } from "./ui/button";
+import { useChatContext } from "@/context/chat-context";
 
 interface LineBlockProps {
     line: string;
@@ -20,16 +21,16 @@ export const LineBlock: React.FC<LineBlockProps> = ({ line }) => {
 
 interface ChatMessageBlockProps {
     message: IChatMessage;
-    handleRegenerate?: (uid: string) => void;
     className?: string;
 }
 
-export const ChatMessageBlock: React.FC<ChatMessageBlockProps> = ({ message, handleRegenerate, className }) => {
+export const ChatMessageBlock: React.FC<ChatMessageBlockProps> = ({ message, className }) => {
+    const { handleRegenerate } = useChatContext();
     const parsedMessage = parseResponse(message.content, ['think']);
     return (
         <div className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`} key={`${message.uid}-${message.timestamp}`} >
             <div className={[
-                message.role === 'assistant' && 'w-full bg-slate-100 text-white',
+                message.role === 'assistant' && 'w-full bg-slate-100 text-black',
                 message.role === 'user' && 'px-4 py-1 rounded-lg bg-white dark:bg-slate-800',
                 'min-h-4 border-0 shadow-none resize-none focus-visible:ring-0 overflow-hidden bg-transparent',
                 className

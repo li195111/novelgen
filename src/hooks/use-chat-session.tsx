@@ -1,8 +1,8 @@
-import { handleChat } from "@/api/chat";
+import { handleBackendChat, handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
-import { STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SCENE_GENERATEOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/prompts";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
+import { STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SCENE_GENERATEOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/prompts";
 import { parseResponse } from "@/utils";
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
@@ -118,13 +118,18 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         </story>`;
         const sysMessage = systemMessage(SYSTEM_PROMPT(darkMode) + (story ? storyContent : ""));
         const newMessages = await appendChatSession(userMessage(values.chatMessage), sysMessage);
-        await handleChat(newMessages, "與 AI 對話時發生錯誤",
+        await handleBackendChat(newMessages,
             (text: string) => updateChatSession({ currentResponse: text }),
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
-            abortControllerRef,
-            model,
-        );
+            model);
+        // await handleChat(newMessages, "與 AI 對話時發生錯誤",
+        //     (text: string) => updateChatSession({ currentResponse: text }),
+        //     (text: string) => appendChatResponse('currentResponse', text),
+        //     toast,
+        //     abortControllerRef,
+        //     model,
+        // );
         updateChatSession({ isStreaming: false });
     }
 

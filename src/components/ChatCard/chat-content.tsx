@@ -8,19 +8,21 @@ interface ChatContentProps {
 }
 
 export const ChatContent: React.FC<ChatContentProps> = ({ }) => {
-    const { historyRef, chatSession, handleRegenerate } = useChatContext();
+    const { historyRef, chatSession } = useChatContext();
     return (
         <CardContent className={[
             "py-1 px-3 max-h-[30rem] overflow-y-auto",
-            'bg-slate-100 text-black'
+            // 'bg-slate-100 text-black'
         ].join(' ')} ref={historyRef}>
             {/* 聊天訊息歷史 */}
             <div className="flex flex-col space-y-6 p-4">
                 {chatSession.messages.map((message, index) => {
                     if (message.role !== 'system') {
                         if ((index !== chatSession.messages.length - 1) || (index === chatSession.messages.length - 1 && message.role === 'user')) {
-                            return <ChatMessageBlock handleRegenerate={handleRegenerate} message={message} key={`${message.uid}-${message.timestamp}`}
-                                className={['bg-white text-black'].join(' ')} />
+                            return <ChatMessageBlock message={message} key={`${message.uid}-${message.timestamp}`}
+                                className={[
+                                    // 'bg-white text-black'
+                                ].join(' ')} />
                         }
                     }
                 }
@@ -33,13 +35,17 @@ export const ChatContent: React.FC<ChatContentProps> = ({ }) => {
                     {chatSession.isThinking && <ThinkingAccordion think={chatSession.think} isStreaming={chatSession.isStreaming} />}
                     {!chatSession.isThinking && <ThinkAccordion think={chatSession.think} />}
                     <ResponseBlock message={chatSession.responseResult}
-                        className={['bg-slate-100 text-black'].join(' ')} />
+                        className={[
+                            // 'bg-slate-100 text-black'
+                        ].join(' ')} />
                 </div>
             )}
             {!chatSession.isStreaming && chatSession.currentResponse && (
                 <div className="flex p-4">
-                    <ChatMessageBlock handleRegenerate={handleRegenerate} message={chatSession.messages[chatSession.messages.length - 1]}
-                        className={['bg-slate-100 text-black'].join(' ')} />
+                    <ChatMessageBlock message={chatSession.messages[chatSession.messages.length - 1]}
+                        className={[
+                            // 'bg-slate-100 text-black'
+                        ].join(' ')} />
                 </div>
             )}
         </CardContent>

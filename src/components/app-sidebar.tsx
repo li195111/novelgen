@@ -325,7 +325,7 @@ export function AppSidebar() {
                         <SidebarGroupAction title="新增對話集">
                             <PlusCircleIcon className="w-4 h-4" />
                         </SidebarGroupAction>
-                        <CollapsibleContent className="max-h-[40rem] overflow-y-auto">
+                        <CollapsibleContent className="min-w-max max-h-[28rem] overflow-y-auto">
                             <DragDropContext onDragEnd={handleDragChatEnd}>
                                 {/* 對話集區域 */}
                                 {chatState.collections.map(collection => (

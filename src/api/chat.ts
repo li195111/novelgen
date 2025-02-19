@@ -1,5 +1,51 @@
 import { ChatMessage } from "@/models/chat";
+import { invoke } from "@tauri-apps/api/core";
+import { Event, listen, UnlistenFn } from "@tauri-apps/api/event";
 import { Dispatch, SetStateAction } from "react";
+
+interface Payload {
+  role: string;
+  content: string;
+}
+
+export const handleBackendChat = async (
+  messages: ChatMessage[],
+  setResponseCallback?:
+    | Dispatch<SetStateAction<string>>
+    | ((value: string) => void),
+  appendResponseCallback?:
+    | Dispatch<SetStateAction<string>>
+    | ((value: string) => void),
+  toastCallback?: (props: any) => {},
+  model?: string
+) => {
+  if (setResponseCallback) {
+    setResponseCallback("");
+  }
+  // 監聽事件
+  const unlisten: UnlistenFn = await listen(
+    "ollama_chat_stream_event",
+    (event: Event<Payload>) => {
+      if (appendResponseCallback) {
+        appendResponseCallback(event.payload.content);
+      }
+    }
+  );
+
+  // 呼叫 Rust API
+  const response = await invoke("handle_ollama_chat", {
+    messages: messages.map((mes) => ({
+      role: mes.role,
+      content: mes.content,
+    })),
+    model: model ?? "deepseek-r1:32b",
+  });
+
+  // 解除監聽放在回應後
+  unlisten();
+
+  return response;
+};
 
 export const handleOllamaChat = async (
   messages: ChatMessage[],
