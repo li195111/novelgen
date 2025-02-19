@@ -4,7 +4,7 @@ import { ChatCardHeader } from "@/components/ChatCard/chat-header";
 import { StoryChatForm, StoryChatSchema } from "@/components/story-chat-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
-import { useChatStorage } from "@/hooks/use-chat-storage";
+import { useChatContext } from "@/context/chat-context";
 import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
 import { BotMessageSquareIcon } from "lucide-react";
@@ -23,14 +23,12 @@ interface ChatCardProps {
 }
 
 export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
-    const historyRef = useRef<HTMLDivElement>(null);
-    const { chatSession, resetCurrentChatSession, updateChatSession,
-        handleChatStory, handleRegenerate,
+    const { resetCurrentChatSession,
+        handleChatStory,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
-        isDarkModeChat, toggleIsDarkModeChat,
-        currentModel, setCurrentModel,
-    } = useChatStorage(historyRef);
+        isDarkModeChat,
+    } = useChatContext();
     const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => Promise<void> }>({
         'normal': handleChatStory,
         'story-suggestion': handleStorySuggestion,
@@ -39,24 +37,10 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         'story-content-extend': handleStoryContentExtend,
     });
 
-    const abortControllerRef = useRef<AbortController | null>(null);
-
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const toggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
-    };
-
-    const handleNewChatSession = () => {
-        resetCurrentChatSession();
-    }
-
-    const handleStopChat = () => {
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-            abortControllerRef.current = null;
-            updateChatSession({ isStreaming: false });
-        }
     };
 
     useEffect(() => {
@@ -84,21 +68,8 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                     className="fixed bottom-4 right-8 flex justify-center p-0 m-0 w-[49rem]"
                 >
                     <Card className="w-full h-full bg-slate-50 shadow-lg">
-                        <ChatCardHeader
-                            chatSession={chatSession}
-                            toggleCollapse={toggleCollapse}
-                            handleNewChatSession={handleNewChatSession}
-                            isDarkModeChat={isDarkModeChat}
-                            toggleIsDarkModeChat={toggleIsDarkModeChat}
-                            model={currentModel}
-                            onChange={(model: string) => setCurrentModel(model)}
-                        />
-                        <ChatContent
-                            chatSession={chatSession}
-                            historyRef={historyRef}
-                            handleRegenerate={handleRegenerate}
-                            isDarkModeChat={isDarkModeChat}
-                        />
+                        <ChatCardHeader toggleCollapse={toggleCollapse} />
+                        <ChatContent />
                         {/* 輸入表單 */}
                         <Separator orientation="horizontal" className={[
                             "border",
@@ -107,13 +78,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                         <CardFooter className={[
                             "p-2",
                         ].join(' ')}>
-                            <StoryChatForm
-                                currentModel={currentModel}
-                                chatSession={chatSession}
-                                handleStop={handleStopChat}
-                                submitMap={submitMap}
-                                isDarkModeChat={isDarkModeChat}
-                            />
+                            <StoryChatForm submitMap={submitMap} />
                         </CardFooter>
                     </Card>
                 </motion.div>

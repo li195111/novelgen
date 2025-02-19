@@ -2,17 +2,13 @@ import { ChatMessageBlock, ResponseBlock } from "@/components/chat-message";
 import ThinkAccordion from "@/components/think-accordion";
 import ThinkingAccordion from "@/components/thinking-accordion";
 import { CardContent } from "@/components/ui/card";
-import { ChatSessionState } from "@/hooks/use-chat-session";
+import { useChatContext } from "@/context/chat-context";
 
 interface ChatContentProps {
-    chatSession: ChatSessionState;
-    historyRef: React.RefObject<HTMLDivElement>;
-    handleRegenerate: () => void;
-    isDarkModeChat?: boolean;
 }
 
-export const ChatContent: React.FC<ChatContentProps> = ({ historyRef, chatSession, handleRegenerate, isDarkModeChat }) => {
-
+export const ChatContent: React.FC<ChatContentProps> = ({ }) => {
+    const { historyRef, chatSession, handleRegenerate } = useChatContext();
     return (
         <CardContent className={[
             "py-1 px-3 max-h-[30rem] overflow-y-auto",

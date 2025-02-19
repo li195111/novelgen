@@ -4,32 +4,26 @@ import { Button } from "@/components/ui/button"
 import { CardHeader } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ChatSessionState } from "@/hooks/use-chat-session"
+import { useChatContext } from "@/context/chat-context"
 import { useStoryStorage } from "@/hooks/use-story-storage"
 import { ChevronDownIcon, LucidePencilLine } from "lucide-react"
 
 interface ChatCardHeaderProps {
-    chatSession: ChatSessionState
     toggleCollapse: () => void
-    handleNewChatSession: () => void
-    isDarkModeChat?: boolean
-    toggleIsDarkModeChat?: () => void
-    model: string
-    onChange: (model: string) => void
 }
 
 export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({
-    chatSession, toggleCollapse, handleNewChatSession, isDarkModeChat, toggleIsDarkModeChat,
-    model, onChange
+    toggleCollapse,
 }) => {
     const { selectedStory, currentStoryCollectionId, currentStoryCollection } = useStoryStorage();
+    const { chatSession, isDarkModeChat, toggleIsDarkModeChat, resetCurrentChatSession, currentModel, setCurrentModel } = useChatContext();
     return (
         <CardHeader className={[
             "h-8 flex flex-row items-center px-3 py-1 space-y-0",
             isDarkModeChat ? "bg-purple-800 text-white" : 'bg-slate-200 text-black',
             "rounded-tl-lg rounded-tr-lg"
         ].join(' ')}>
-            <Button variant='ghost' className="px-2 py-0 h-full" title="新對話" onClick={handleNewChatSession}>
+            <Button variant='ghost' className="px-2 py-0 h-full" title="新對話" onClick={resetCurrentChatSession}>
                 <LucidePencilLine className="w-4 h-4" />
             </Button>
             <div className="flex w-full justify-start space-x-8 pl-4">
@@ -47,7 +41,7 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({
             <div className="flex flex-row items-center space-x-2">
                 <OllamaModelSelect className={[
                     isDarkModeChat ? 'bg-purple-800 text-white' : 'bg-slate-200 text-black',
-                ].join(' ')} model={model} onChange={onChange} />
+                ].join(' ')} model={currentModel} onChange={(model: string) => setCurrentModel(model)} />
             </div>
             {toggleIsDarkModeChat && (
                 <div className={[

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ChatSessionState } from "@/hooks/use-chat-session";
+import { useChatContext } from "@/context/chat-context";
 import { useStoryStorage } from "@/hooks/use-story-storage";
 import { cn } from "@/lib/utils";
 import { dynamicHeight } from "@/utils";
@@ -23,16 +23,13 @@ export type StoryType = z.infer<typeof StoryChatSchema>;
 type ChatTag = "Story";
 
 interface StoryChatFormProps {
-    currentModel: string;
-    chatSession: ChatSessionState;
-    handleStop?: () => void;
     submitMap: React.MutableRefObject<{
         [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => Promise<void>;
     }>;
-    isDarkModeChat?: boolean;
 }
 
-export const StoryChatForm: React.FC<StoryChatFormProps> = ({ currentModel, chatSession, handleStop, submitMap, isDarkModeChat }) => {
+export const StoryChatForm: React.FC<StoryChatFormProps> = ({ submitMap }) => {
+    const { chatSession, currentModel, isDarkModeChat, handleAbortControllerRef } = useChatContext();
     const { selectedStory } = useStoryStorage();
     const [storyValue, setStoryValue] = useState<string>('');
     const [chatTagList, setChatTagList] = useState<(string | ChatTag)[]>(['Story']);
@@ -66,6 +63,10 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ currentModel, chat
     const removeUseChatTag = (tagToRemove: string) => {
         const newTags = useChatTagList.filter(tag => tag !== tagToRemove);
         setUseChatTagList(newTags);
+    };
+
+    const handleStopChat = () => {
+        handleAbortControllerRef();
     };
 
     useEffect(() => {
@@ -253,7 +254,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ currentModel, chat
                     <Button
                         type="submit"
                         className="w-9 rounded-full"
-                        onClick={chatSession.isStreaming ? handleStop : undefined}
+                        onClick={chatSession.isStreaming ? handleStopChat : undefined}
                         ref={chatSession.isStreaming ? undefined : submitRef}
                     >
                         {chatSession.isStreaming && <StopCircle className="text-red-500" />}

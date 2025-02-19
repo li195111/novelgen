@@ -5,10 +5,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection, RootChatState } from "@/models/chat-collection";
 import { parseResponse } from "@/utils";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
 
-export const useChatStorage = (historyRef?: React.RefObject<any>) => {
+export const useChatStorage = (historyRef?: React.RefObject<any>, abortControllerRef?: React.RefObject<any>) => {
     const { toast } = useToast();
     const [chatState, setChatState] = useLocalStorage<RootChatState>('chat-state', {
         unorganizedStories: [],
@@ -28,7 +28,7 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
         handleChatStory, handleRegenerate, handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
-    } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], selectedChat, historyRef);
+    } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], selectedChat, historyRef, abortControllerRef);
 
     const toggleIsDarkModeChat = () => {
         setIsDarkModeChat(!isDarkModeChat);
@@ -39,7 +39,7 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
             if (!prev && nullUpdate) return nullUpdate;
             if (prev && update) return { ...prev, ...update };
             if (prev === chat) return prev;
-            console.debug('Update Selected Chat');
+            // console.debug('Update Selected Chat');
             return chat;
         });
     }
@@ -165,9 +165,13 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
             update = { ...update, title: chatSession.title };
         }
         if (chatSession.messages.some(mes => mes.role === 'user')) {
+            // console.debug('Update Selected Chat with Chat Session Messages');
             update = { ...update, messages: chatSession.messages };
         }
         if (chatSession.messages.length > 1) {
+            if (selectedChat) {
+                updateChatState(selectedChat, update);
+            }
             handleSelectedChat(null, update, new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title, ...update }));
         }
     }, [chatSession.messages, chatSession.title, chatSession.isTitleStreaming])
@@ -218,7 +222,7 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
             return;
         }
         if (chatSession.isStreaming || (chatSession.isTitleStreaming)) return;
-
+        // console.debug('Update Chat State with Selected Chat');
         updateChatState(selectedChat, {});
         updateChatSessionWithSelectedChat();
     }, [selectedChat]);

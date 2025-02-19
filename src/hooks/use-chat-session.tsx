@@ -4,7 +4,7 @@ import { STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { parseResponse } from "@/utils";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { z } from "zod";
 
 export interface ChatSessionState {
@@ -21,9 +21,8 @@ export interface ChatSessionState {
     [key: string]: any;
 }
 
-export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Chat | null, historyRef?: React.RefObject<any>) => {
+export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Chat | null, historyRef?: React.RefObject<any>, abortControllerRef?: React.RefObject<any>) => {
     const { toast } = useToast();
-    const abortControllerRef = useRef<AbortController | null>(null);
     const [chatSession, setChatSession] = useState<ChatSessionState>({
         uid: '',
         messages: selectedChat?.messages ?? initialMessages,
@@ -294,9 +293,9 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         }
     }, [chatSession.titleResponse]);
 
-    useEffect(() => {
-        console.trace('Selected Chat Change, Update Chat Session');
-    }, [selectedChat])
+    // useEffect(() => {
+    //     console.debug('Selected Chat Change, Update Chat Session');
+    // }, [selectedChat])
 
     // useEffect(() => {
     //     console.debug('messages: ', chatSession.messages);
