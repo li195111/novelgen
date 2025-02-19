@@ -16,7 +16,7 @@ import {
     SidebarHeader,
     SidebarMenuButton
 } from "@/components/ui/sidebar";
-import { useCurrentChatStorage } from "@/hooks/use-current-chat-storage";
+import { useChatStorage } from "@/hooks/use-chat-storage";
 import { useCurrentStoryStorage } from "@/hooks/use-current-story-storage";
 import { Chat } from "@/models/chat";
 import { ChatCollection } from "@/models/chat-collection";
@@ -39,7 +39,7 @@ export function AppSidebar() {
 
     const { chatState, setChatState, selectedChat, setCurrentChatUid, currentChatCollection, setCurrentChatCollection,
         handleDeleteCurrentChatCollection, handleDeleteSelectedChat,
-    } = useCurrentChatStorage();
+    } = useChatStorage();
     const [deleteChatCollectionAlertOpen, setDeleteChatCollectionAlertOpen] = useState(false);
     const [deleteChatAlertOpen, setDeleteChatAlertOpen] = useState(false);
 

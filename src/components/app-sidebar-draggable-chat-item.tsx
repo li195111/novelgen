@@ -7,7 +7,7 @@ import {
     SidebarMenuItem
 } from "@/components/ui/sidebar";
 import { DISPLAY_TITLE_LENGTH } from "@/constant";
-import { useCurrentChatStorage } from "@/hooks/use-current-chat-storage";
+import { useChatStorage } from "@/hooks/use-chat-storage";
 import { Chat } from "@/models/chat";
 import { Draggable } from '@hello-pangea/dnd';
 import { GripVertical, MoreHorizontal, Trash2Icon } from "lucide-react";
@@ -20,7 +20,7 @@ interface DraggableChatItemProps {
 }
 
 export const DraggableChatItem: FC<DraggableChatItemProps> = ({ chat, index, onDelete }) => {
-    const { selectedChat, setSelectedChat } = useCurrentChatStorage();
+    const { selectedChat, setSelectedChat } = useChatStorage();
     return (
         <Draggable
             key={`chat-${chat.uid}`}

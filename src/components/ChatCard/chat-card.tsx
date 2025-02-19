@@ -4,7 +4,7 @@ import { ChatCardHeader } from "@/components/ChatCard/chat-header";
 import { StoryChatForm, StoryChatSchema } from "@/components/story-chat-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
-import { useCurrentChatStorage } from "@/hooks/use-current-chat-storage";
+import { useChatStorage } from "@/hooks/use-chat-storage";
 import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
 import { BotMessageSquareIcon } from "lucide-react";
@@ -31,7 +31,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
         isDarkModeChat, toggleIsDarkModeChat,
         currentModel, setCurrentModel,
-    } = useCurrentChatStorage(historyRef);
+    } = useChatStorage(historyRef);
     const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => Promise<void> }>({
         'normal': handleChatStory,
         'story-suggestion': handleStorySuggestion,
