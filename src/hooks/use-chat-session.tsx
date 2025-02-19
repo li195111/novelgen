@@ -1,4 +1,4 @@
-import { handleBackendChat, handleChat } from "@/api/chat";
+import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
@@ -21,7 +21,7 @@ export interface ChatSessionState {
     [key: string]: any;
 }
 
-export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Chat | null, historyRef?: React.RefObject<any>, abortControllerRef?: React.RefObject<any>) => {
+export const useChatSession = (initialMessages: ChatMessage[], currentModel: string, selectedChat: Chat | null, historyRef?: React.RefObject<any>, abortControllerRef?: React.RefObject<any>) => {
     const { toast } = useToast();
     const [userScrolling, setUserScrolling] = useState(false);
     const [chatSession, setChatSession] = useState<ChatSessionState>({
@@ -118,18 +118,19 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         </story>`;
         const sysMessage = systemMessage(SYSTEM_PROMPT(darkMode) + (story ? storyContent : ""));
         const newMessages = await appendChatSession(userMessage(values.chatMessage), sysMessage);
-        await handleBackendChat(newMessages,
-            (text: string) => updateChatSession({ currentResponse: text }),
-            (text: string) => appendChatResponse('currentResponse', text),
-            toast,
-            model);
-        // await handleChat(newMessages, "與 AI 對話時發生錯誤",
+        // await handleBackendChat(newMessages, "與 AI 對話時發生錯誤",
         //     (text: string) => updateChatSession({ currentResponse: text }),
         //     (text: string) => appendChatResponse('currentResponse', text),
         //     toast,
         //     abortControllerRef,
-        //     model,
-        // );
+        //     model);
+        await handleChat(newMessages, "與 AI 對話時發生錯誤",
+            (text: string) => updateChatSession({ currentResponse: text }),
+            (text: string) => appendChatResponse('currentResponse', text),
+            toast,
+            abortControllerRef,
+            model ?? currentModel,
+        );
         updateChatSession({ isStreaming: false });
     }
 
@@ -141,7 +142,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            model
+            model ?? currentModel,
         );
         updateChatSession({ isStreaming: false });
     };
@@ -157,7 +158,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             appendResponseCallback,
             toast,
             null,
-            model ?? "deepseek-r1:14b"
+            model ?? currentModel,
         );
     }
 
@@ -173,7 +174,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('titleResponse', text),
             toast,
             null,
-            model ?? "deepseek-r1:14b"
+            model ?? currentModel,
         );
         updateChatSession({ isTitleStreaming: false });
     }
@@ -190,7 +191,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            model
+            model ?? currentModel,
         )
         updateChatSession({ isStreaming: false });
     }
@@ -208,7 +209,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            model
+            model ?? currentModel,
         )
         updateChatSession({ isStreaming: false });
     }
@@ -226,7 +227,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            model
+            model ?? currentModel,
         )
         updateChatSession({ isStreaming: false });
     }
@@ -244,7 +245,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            model
+            model ?? currentModel,
         )
         updateChatSession({ isStreaming: false });
     }

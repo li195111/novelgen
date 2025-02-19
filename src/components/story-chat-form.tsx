@@ -252,7 +252,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ submitMap }) => {
                         </Button>
                     </div>
                     <Button
-                        type="submit"
+                        type={!chatSession.isStreaming ? "submit" : "button"}
                         className="w-9 rounded-full"
                         onClick={chatSession.isStreaming ? handleStopChat : undefined}
                         ref={chatSession.isStreaming ? undefined : submitRef}

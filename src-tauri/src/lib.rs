@@ -1,5 +1,5 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use std::sync::{ Arc, Mutex as StdMutex };
+use std::sync::{ atomic::{ AtomicBool, Ordering }, Arc, Mutex as StdMutex };
 use tokio::sync::Mutex;
 use tauri::{ Manager, State, AppHandle, Emitter };
 use tokio_stream::StreamExt;
@@ -18,6 +18,13 @@ struct Payload {
 #[derive(Default, Debug)]
 struct AppState {
     ollama: Ollama,
+    cancel_signal: AtomicBool,
+}
+
+#[tauri::command]
+async fn set_cancel_signal(state: State<'_, Mutex<AppState>>, signal: bool) -> Result<bool, ()> {
+    state.lock().await.cancel_signal.store(signal, Ordering::SeqCst);
+    Ok(signal)
 }
 
 #[tauri::command]
@@ -30,21 +37,29 @@ async fn handle_ollama_chat(
     let mut state = state.lock().await;
     let ollama = &mut state.ollama;
     let history = Arc::new(StdMutex::new(vec![]));
-    let user_prompt = messages.last().unwrap().content.clone();
+    messages[0..messages.len() - 1].iter().for_each(|m| history.lock().unwrap().push(m.clone()));
+    let last_msg = messages.last().unwrap();
     let mut stream: ChatMessageResponseStream = ollama
         .send_chat_messages_with_history_stream(
             history.clone(),
-            ChatMessageRequest::new(model.clone(), vec![ChatMessage::user(user_prompt)])
+            ChatMessageRequest::new(model.clone(), vec![last_msg.clone()])
         ).await
         .unwrap();
 
     let mut response = String::new();
     while let Some(Ok(res)) = stream.next().await {
+        if state.cancel_signal.load(Ordering::SeqCst) {
+            break;
+        }
         response += res.message.content.as_str();
         app.emit("ollama_chat_stream_event", Payload {
             role: "assistant".to_string(),
             content: res.message.content,
         }).unwrap();
+    }
+    if state.cancel_signal.load(Ordering::SeqCst) {
+        state.cancel_signal.store(false, Ordering::SeqCst);
+        return Err(());
     }
     Ok(response)
 }
@@ -57,12 +72,13 @@ pub fn run() {
             app.manage(
                 Mutex::new(AppState {
                     ollama: Ollama::new("http://localhost".to_string(), 11434),
+                    cancel_signal: AtomicBool::new(false),
                 })
             );
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![handle_ollama_chat])
+        .invoke_handler(tauri::generate_handler![handle_ollama_chat, set_cancel_signal])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

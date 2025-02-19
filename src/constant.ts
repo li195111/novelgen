@@ -7,6 +7,9 @@ export const MODEL_SELECTION = [
 
 export const MAX_TEAXTAREA_HEIGHT = 300;
 export const DISPLAY_TITLE_LENGTH = 8;
+export const DISPLAY_STORY_COLLECTION_NAME_LENGTH = 5;
+export const DISPLAY_STORY_TITLE_LENGTH = 10;
+export const DISPLAY_CHAT_SESSION_TITLE_LENGTH = 10;
 
 export const BODY_PARTS = [
   "手",

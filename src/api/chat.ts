@@ -10,6 +10,7 @@ interface Payload {
 
 export const handleBackendChat = async (
   messages: ChatMessage[],
+  errorDescription: string,
   setResponseCallback?:
     | Dispatch<SetStateAction<string>>
     | ((value: string) => void),
@@ -17,34 +18,58 @@ export const handleBackendChat = async (
     | Dispatch<SetStateAction<string>>
     | ((value: string) => void),
   toastCallback?: (props: any) => {},
+  abortControllerRef?: React.MutableRefObject<AbortController | null> | null,
   model?: string
 ) => {
-  if (setResponseCallback) {
-    setResponseCallback("");
-  }
-  // 監聽事件
-  const unlisten: UnlistenFn = await listen(
-    "ollama_chat_stream_event",
-    (event: Event<Payload>) => {
-      if (appendResponseCallback) {
-        appendResponseCallback(event.payload.content);
-      }
+  try {
+    if (setResponseCallback) {
+      setResponseCallback("");
     }
-  );
+    // Create new AbortController
+    if (abortControllerRef) {
+      abortControllerRef.current = new AbortController();
+    }
 
-  // 呼叫 Rust API
-  const response = await invoke("handle_ollama_chat", {
-    messages: messages.map((mes) => ({
-      role: mes.role,
-      content: mes.content,
-    })),
-    model: model ?? "deepseek-r1:32b",
-  });
+    // 監聽事件
+    const unlisten: UnlistenFn = await listen(
+      "ollama_chat_stream_event",
+      async (event: Event<Payload>) => {
+        if (appendResponseCallback) {
+          appendResponseCallback(event.payload.content);
+        }
+        console.debug(abortControllerRef);
+        console.debug(abortControllerRef?.current);
+        if (abortControllerRef?.current?.signal.aborted) {
+          // 發送取消信號到 Rust 後端
+          await invoke("set_cancel_signal", { signal: true });
+        }
+      }
+    );
 
-  // 解除監聽放在回應後
-  unlisten();
+    // 呼叫 Rust API
+    const response = await invoke("handle_ollama_chat", {
+      messages: messages.map((mes) => ({
+        role: mes.role,
+        content: mes.content,
+      })),
+      model: model ?? "deepseek-r1:32b",
+    });
 
-  return response;
+    // 解除監聽放在回應後
+    unlisten();
+
+    return response;
+  } catch (error) {
+    console.error("Error:", error);
+    if (toastCallback) {
+      toastCallback({
+        title: "錯誤",
+        description: errorDescription,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  }
 };
 
 export const handleOllamaChat = async (

@@ -50,6 +50,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
             abortControllerRef.current = null;
+            chatStorage.updateChatSession({ isStreaming: false })
         }
     }
 

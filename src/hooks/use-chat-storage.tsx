@@ -28,7 +28,7 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
         handleChatStory, handleRegenerate, handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
-    } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], selectedChat, historyRef, abortControllerRef);
+    } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], currentModel, selectedChat, historyRef, abortControllerRef);
 
     const toggleIsDarkModeChat = () => {
         setIsDarkModeChat(!isDarkModeChat);
@@ -106,6 +106,9 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
             }
             return prev;
         })
+        if (selectedChat.uid === chatSession.uid) {
+            resetCurrentChatSession();
+        }
         toast({
             title: `已刪除對話 ${selectedChat.title}`,
             duration: 2000,
