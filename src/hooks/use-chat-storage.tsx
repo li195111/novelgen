@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection, RootChatState } from "@/models/chat-collection";
 import { parseResponse } from "@/utils";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
 
 export const useChatStorage = (historyRef?: React.RefObject<any>) => {
@@ -17,14 +17,14 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
     const [isDarkModeChat, setIsDarkModeChat] = useLocalStorage<boolean>('dark-mode-chat', false);
     const [currentModel, setCurrentModel] = useLocalStorage<string>('current-model', 'deepseek-r1:32b');
 
-    const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-    const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', selectedChat?.uid ?? '');
+    const [selectedChat, setSelectedChat] = useLocalStorage<Chat | null>('selected-chat', null);
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
     const [currentChatCollection, setCurrentChatCollection] = useState<ChatCollection | null>(null);
 
     const reTitleStreamingRef = useRef(false);
 
-    const { chatSession, setChatSession, updateChatSession, resetChatSession,
+    const {
+        chatSession, setChatSession, updateChatSession, resetChatSession,
         handleChatStory, handleRegenerate, handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
@@ -34,22 +34,21 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
         setIsDarkModeChat(!isDarkModeChat);
     }
 
-    const resetCurrentChatSession = () => {
-        resetChatSession();
-        setSelectedChat(null);
-        setCurrentChatCollectionId("unorganized");
-        setCurrentChatUid("");
+    const handleSelectedChat = (chat: Chat | null, update?: Partial<Chat>, nullUpdate?: Chat) => {
+        setSelectedChat((prev) => {
+            if (!prev && nullUpdate) return nullUpdate;
+            if (prev && update) return { ...prev, ...update };
+            if (prev === chat) return prev;
+            console.debug('Update Selected Chat');
+            return chat;
+        });
     }
 
-    const updateSelectedChat = async (update: Partial<Chat>) => {
-        const selectChat: Chat = await new Promise((resolve) => {
-            setSelectedChat((prev) => {
-                resolve(prev ? { ...prev, ...update } : new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title }))
-                return prev;
-            });
-        })
-        setSelectedChat(selectChat);
-        setCurrentChatUid(selectChat.uid);
+    const resetCurrentChatSession = () => {
+        resetChatSession();
+        handleSelectedChat(null);
+        setCurrentChatCollectionId("unorganized");
+        setCurrentChatCollection(null);
     }
 
     const handleDeleteCurrentChatCollection = () => {
@@ -67,7 +66,9 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
             title: `已刪除故事集 ${currentChatCollection?.name}`,
             duration: 2000,
         })
-        setCurrentChatUid("");
+        handleSelectedChat(null);
+        setCurrentChatCollection(null);
+        setCurrentChatCollectionId("unorganized");
     }
 
     const handleDeleteSelectedChat = () => {
@@ -106,10 +107,10 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
             return prev;
         })
         toast({
-            title: `已刪除故事 ${selectedChat.title}`,
+            title: `已刪除對話 ${selectedChat.title}`,
             duration: 2000,
         })
-        setCurrentChatUid("");
+        handleSelectedChat(null);
     }
 
     const updateChatState = (updateChat: Chat, update: Partial<Chat>) => {
@@ -159,63 +160,17 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
     }
 
     useEffect(() => {
+        let update = {};
         if (chatSession.title && !chatSession.isTitleStreaming) {
-            updateSelectedChat({ title: chatSession.title });
+            update = { ...update, title: chatSession.title };
         }
-    }, [chatSession.title, chatSession.isTitleStreaming]);
-
-    useEffect(() => {
         if (chatSession.messages.some(mes => mes.role === 'user')) {
-            updateSelectedChat({ messages: chatSession.messages });
+            update = { ...update, messages: chatSession.messages };
         }
-    }, [chatSession.messages, chatSession.title]);
-
-    const findChat = useCallback((chatUid: string) => {
-        // Check unorganized stories first
-        const foundUnorganizedChat = chatState.unorganizedStories.find(
-            (chat) => chat.uid === chatUid
-        );
-        if (foundUnorganizedChat) {
-            return {
-                chat: foundUnorganizedChat,
-                collection: { id: "unorganized", name: "unorganized", chats: [] },
-                collectionId: "unorganized"
-            };
+        if (chatSession.messages.length > 1) {
+            handleSelectedChat(null, update, new Chat({ uid: v4(), messages: chatSession.messages, title: chatSession.title, ...update }));
         }
-
-        // Check collections
-        const foundCollection = chatState.collections.find((collection) =>
-            collection.chats.some((chat) => chat.uid === chatUid)
-        );
-        if (foundCollection) {
-            const chat = foundCollection.chats.find((chat) => chat.uid === chatUid)!;
-            return {
-                chat,
-                collection: foundCollection,
-                collectionId: foundCollection.id
-            };
-        }
-
-        return {
-            chat: null,
-            collection: null,
-            collectionId: "unorganized"
-        };
-    }, [chatState]);
-
-    useEffect(() => {
-        if (currentChatUid) {
-            const { chat, collection, collectionId } = findChat(currentChatUid);
-            setSelectedChat(chat);
-            setCurrentChatCollection(collection);
-            setCurrentChatCollectionId(collectionId);
-        } else {
-            setSelectedChat(null);
-            setCurrentChatCollection(null);
-            setCurrentChatCollectionId("unorganized");
-        }
-    }, [currentChatUid]);
-
+    }, [chatSession.messages, chatSession.title, chatSession.isTitleStreaming])
 
     useEffect(() => {
         if (!selectedChat || chatSession.uid === selectedChat.uid) return;
@@ -276,9 +231,8 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
         handleStoryContentModifyAndExtend,
         handleStoryContentExtend,
         chatState, setChatState,
-        currentChatUid, setCurrentChatUid,
         currentChatCollection, setCurrentChatCollection,
-        selectedChat, setSelectedChat,
+        selectedChat, handleSelectedChat,
         currentChatCollectionId, setCurrentChatCollectionId,
         isDarkModeChat, toggleIsDarkModeChat,
         handleDeleteCurrentChatCollection,

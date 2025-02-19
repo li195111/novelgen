@@ -4,7 +4,7 @@ import { STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { parseResponse } from "@/utils";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 export interface ChatSessionState {
@@ -244,11 +244,11 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         updateChatSession({ isStreaming: false });
     }
 
-    const scrollToBottom = useCallback(() => {
+    const scrollToBottom = () => {
         if (historyRef?.current) {
             historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
         }
-    }, []);
+    };
 
     useEffect(() => {
         if (chatSession.isStreaming) {
@@ -294,17 +294,20 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         }
     }, [chatSession.titleResponse]);
 
+    useEffect(() => {
+        console.trace('Selected Chat Change, Update Chat Session');
+    }, [selectedChat])
+
     // useEffect(() => {
     //     console.debug('messages: ', chatSession.messages);
     // }, [chatSession.messages])
 
     return {
-        chatSession, setChatSession, resetChatSession,
+        chatSession, setChatSession, updateChatSession, resetChatSession,
         handleChatStory, handleRegenerate,
         handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend,
         handleStoryContentExtend,
-        updateChatSession,
     };
 };

@@ -41,7 +41,7 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({
                 </div>
                 <div className="flex flex-row space-x-1 items-center">
                     {chatSession.title && <span className="text-xs">{chatSession.title.slice(0, 15)}{chatSession.title.length > 15 ? '...' : ''}</span>}
-                    {!chatSession.title && chatSession.isTitleStreaming && <ThinkingDots />}
+                    {!chatSession.title && chatSession.isTitleStreaming && <ThinkingDots className={[isDarkModeChat ? 'bg-white' : ''].join(' ')} />}
                 </div>
             </div>
             <div className="flex flex-row items-center space-x-2">

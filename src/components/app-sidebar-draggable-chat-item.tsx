@@ -7,20 +7,20 @@ import {
     SidebarMenuItem
 } from "@/components/ui/sidebar";
 import { DISPLAY_TITLE_LENGTH } from "@/constant";
-import { useChatStorage } from "@/hooks/use-chat-storage";
 import { Chat } from "@/models/chat";
 import { Draggable } from '@hello-pangea/dnd';
 import { GripVertical, MoreHorizontal, Trash2Icon } from "lucide-react";
 import { FC } from 'react';
 
 interface DraggableChatItemProps {
+    selectedChat: Chat | null;
     chat: Chat;
     index: number;
     onDelete: (chat: Chat) => void;
+    onSelect: (chat: Chat) => void;
 }
 
-export const DraggableChatItem: FC<DraggableChatItemProps> = ({ chat, index, onDelete }) => {
-    const { selectedChat, setSelectedChat } = useChatStorage();
+export const DraggableChatItem: FC<DraggableChatItemProps> = ({ selectedChat, chat, index, onDelete, onSelect }) => {
     return (
         <Draggable
             key={`chat-${chat.uid}`}
@@ -34,7 +34,7 @@ export const DraggableChatItem: FC<DraggableChatItemProps> = ({ chat, index, onD
                     className={[
                         'list-none',
                         `${snapshot.isDragging ? 'opacity-50' : ''}`,
-                        `${chat.uid === selectedChat?.uid ? 'bg-slate-200' : ''}`
+                        `${chat.uid === selectedChat?.uid ? 'bg-slate-200' : 'bg-white'}`,
                     ].join(' ')}
                 >
                     <div className="flex items-center w-full">
@@ -47,7 +47,7 @@ export const DraggableChatItem: FC<DraggableChatItemProps> = ({ chat, index, onD
                         <SidebarMenuButton asChild className="flex hover:bg-slate-300 focus:bg-slate-300">
                             {/* <Link to={`/chat/${chat.uid}`}> */}
                             <Button variant='link' className="flex items-center justify-start min-w-max"
-                                onClick={() => setSelectedChat(chat)}>
+                                onClick={() => onSelect(chat)}>
                                 {chat.title?.slice(0, DISPLAY_TITLE_LENGTH) ?? '無標題'}
                                 {(chat.title && chat.title?.length > DISPLAY_TITLE_LENGTH) && '...'}
                             </Button>

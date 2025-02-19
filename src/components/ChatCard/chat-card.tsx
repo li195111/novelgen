@@ -9,7 +9,6 @@ import { Separator } from "@radix-ui/react-separator";
 import { AnimatePresence, motion } from 'framer-motion';
 import { BotMessageSquareIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
 import { TypeOf } from "zod";
 
 export enum SubmitAction {
@@ -24,9 +23,9 @@ interface ChatCardProps {
 }
 
 export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
-    const { chatUid } = useParams();
     const historyRef = useRef<HTMLDivElement>(null);
-    const { chatSession, setCurrentChatUid, resetCurrentChatSession, updateChatSession, handleChatStory, handleRegenerate,
+    const { chatSession, resetCurrentChatSession, updateChatSession,
+        handleChatStory, handleRegenerate,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
         isDarkModeChat, toggleIsDarkModeChat,
@@ -61,13 +60,8 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
     };
 
     useEffect(() => {
-        if (chatUid) {
-            setCurrentChatUid(chatUid);
-        }
-        else {
-            resetCurrentChatSession();
-        }
-    }, [chatUid])
+        resetCurrentChatSession();
+    }, [])
 
     return (
         <AnimatePresence>

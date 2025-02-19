@@ -1,4 +1,7 @@
+import { DraggableChatItem } from "@/components/app-sidebar-draggable-chat-item";
 import { DraggableStoryItem } from "@/components/app-sidebar-draggable-story-item";
+import { DeleteChatAlertDialog } from "@/components/delete-chat-alert-dialog";
+import { DeleteChatCollectionAlertDialog } from "@/components/delete-chat-collection-alert-dialog";
 import { DeleteStoryAlertDialog } from "@/components/delete-story-alert-dialog";
 import { DeleteStoryCollectionAlertDialog } from "@/components/delete-story-collection-alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,9 +30,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ChevronDown, MoreHorizontal, PenLineIcon, PlusCircleIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { Link } from 'react-router-dom';
-import { DraggableChatItem } from "./app-sidebar-draggable-chat-item";
-import { DeleteChatAlertDialog } from "./delete-chat-alert-dialog";
-import { DeleteChatCollectionAlertDialog } from "./delete-chat-collection-alert-dialog";
 
 export function AppSidebar() {
     const { storyState, setStoryState, selectedStory, setCurrentStoryUid, currentStoryCollection, setCurrentStoryCollection,
@@ -37,7 +37,7 @@ export function AppSidebar() {
     const [deleteCollectionAlertOpen, setDeleteCollectionAlertOpen] = useState(false);
     const [deleteStoryAlertOpen, setDeleteStoryAlertOpen] = useState(false);
 
-    const { chatState, setChatState, selectedChat, setCurrentChatUid, currentChatCollection, setCurrentChatCollection,
+    const { chatState, setChatState, selectedChat, handleSelectedChat, currentChatCollection, setCurrentChatCollection,
         handleDeleteCurrentChatCollection, handleDeleteSelectedChat,
     } = useChatStorage();
     const [deleteChatCollectionAlertOpen, setDeleteChatCollectionAlertOpen] = useState(false);
@@ -75,7 +75,7 @@ export function AppSidebar() {
     }
 
     const handleDeleteChat = (chat: Chat) => {
-        setCurrentChatUid(chat.uid);
+        handleSelectedChat(chat);
         setDeleteChatAlertOpen(true);
     }
 
@@ -378,9 +378,11 @@ export function AppSidebar() {
                                                     {collection.chats.map((chat, index) => (
                                                         <DraggableChatItem
                                                             key={`chat-${chat.uid}`}
+                                                            selectedChat={selectedChat}
                                                             chat={chat}
                                                             index={index}
                                                             onDelete={handleDeleteChat}
+                                                            onSelect={handleSelectedChat}
                                                         />
                                                     ))}
                                                     {provided.placeholder}
@@ -400,9 +402,11 @@ export function AppSidebar() {
                                             {chatState.unorganizedStories.map((chat, index) => (
                                                 <DraggableChatItem
                                                     key={`chat-${chat.uid}`}
+                                                    selectedChat={selectedChat}
                                                     chat={chat}
                                                     index={index}
                                                     onDelete={handleDeleteChat}
+                                                    onSelect={handleSelectedChat}
                                                 />
                                             ))}
                                             {provided.placeholder}
