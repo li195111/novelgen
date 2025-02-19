@@ -23,15 +23,16 @@ export type StoryType = z.infer<typeof StoryChatSchema>;
 type ChatTag = "Story";
 
 interface StoryChatFormProps {
+    currentModel: string;
     chatSession: ChatSessionState;
     handleStop?: () => void;
     submitMap: React.MutableRefObject<{
-        [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => Promise<void>;
+        [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => Promise<void>;
     }>;
     isDarkModeChat?: boolean;
 }
 
-export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handleStop, submitMap, isDarkModeChat }) => {
+export const StoryChatForm: React.FC<StoryChatFormProps> = ({ currentModel, chatSession, handleStop, submitMap, isDarkModeChat }) => {
     const { selectedStory } = useStoryStorage();
     const [storyValue, setStoryValue] = useState<string>('');
     const [chatTagList, setChatTagList] = useState<(string | ChatTag)[]>(['Story']);
@@ -89,7 +90,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                 if (useChatTagList.includes('Story')) {
                     storyInfo = storyValue;
                 }
-                submitMap.current[SubmitAction.normal]?.(v, storyInfo, isDarkModeChat);
+                submitMap.current[SubmitAction.normal]?.(v, storyInfo, isDarkModeChat, currentModel);
                 storyForm.reset();
             })} className="flex flex-col w-full space-y-1">
                 <div>
@@ -175,7 +176,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             disabled={!selectedStory}
                             onClick={() => {
                                 handleAddChatTag('Story')();
-                                submitMap.current[SubmitAction.storySuggestion]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat)
+                                submitMap.current[SubmitAction.storySuggestion]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat, currentModel);
                                 storyForm.reset();
                             }}
                         >
@@ -191,7 +192,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                             disabled={!selectedStory}
                             onClick={() => {
                                 handleAddChatTag('Story')();
-                                submitMap.current[SubmitAction.storySceneSuggestion]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat);
+                                submitMap.current[SubmitAction.storySceneSuggestion]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat, currentModel);
                                 storyForm.reset();
                             }}
                         >
@@ -222,7 +223,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                                     return;
                                 }
                                 handleAddChatTag('Story')();
-                                submitMap.current[SubmitAction.storyContentExtend]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat);
+                                submitMap.current[SubmitAction.storyContentExtend]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat, currentModel);
                                 storyForm.reset();
                             }}
                         >
@@ -242,7 +243,7 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ chatSession, handl
                                     return;
                                 }
                                 handleAddChatTag('Story')();
-                                submitMap.current[SubmitAction.storyContentModifyAndExtend]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat);
+                                submitMap.current[SubmitAction.storyContentModifyAndExtend]?.({ chatMessage: storyForm.getValues('chatMessage') ?? "" }, storyValue, isDarkModeChat, currentModel);
                                 storyForm.reset();
                             }}
                         >

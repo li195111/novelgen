@@ -15,23 +15,23 @@ export const useChatStorage = (historyRef?: React.RefObject<any>) => {
         collections: []
     });
     const [isDarkModeChat, setIsDarkModeChat] = useLocalStorage<boolean>('dark-mode-chat', false);
+    const [currentModel, setCurrentModel] = useLocalStorage<string>('current-model', 'deepseek-r1:32b');
+
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+    const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', selectedChat?.uid ?? '');
     const [currentChatCollectionId, setCurrentChatCollectionId] = useState<string | null>("unorganized");
     const [currentChatCollection, setCurrentChatCollection] = useState<ChatCollection | null>(null);
+
     const reTitleStreamingRef = useRef(false);
 
     const { chatSession, setChatSession, updateChatSession, resetChatSession,
         handleChatStory, handleRegenerate, handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
-        currentChatUid, setCurrentChatUid,
-        updateChatSessionDarkMode,
-        currentModel, setCurrentModel,
     } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], selectedChat, historyRef);
 
     const toggleIsDarkModeChat = () => {
         setIsDarkModeChat(!isDarkModeChat);
-        updateChatSessionDarkMode(!isDarkModeChat);
     }
 
     const resetCurrentChatSession = () => {

@@ -32,7 +32,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
         isDarkModeChat, toggleIsDarkModeChat,
         currentModel, setCurrentModel,
     } = useChatStorage(historyRef);
-    const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => Promise<void> }>({
+    const submitMap = useRef<{ [key: string]: (values: TypeOf<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => Promise<void> }>({
         'normal': handleChatStory,
         'story-suggestion': handleStorySuggestion,
         'story-scene-suggestion': handleStorySceneSuggestion,
@@ -114,6 +114,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                             "p-2",
                         ].join(' ')}>
                             <StoryChatForm
+                                currentModel={currentModel}
                                 chatSession={chatSession}
                                 handleStop={handleStopChat}
                                 submitMap={submitMap}

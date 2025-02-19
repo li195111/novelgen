@@ -6,7 +6,6 @@ import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from 
 import { parseResponse } from "@/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import { useLocalStorage } from "./use-storage";
 
 export interface ChatSessionState {
     uid: string;
@@ -24,11 +23,9 @@ export interface ChatSessionState {
 
 export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Chat | null, historyRef?: React.RefObject<any>) => {
     const { toast } = useToast();
-    const [currentModel, setCurrentModel] = useLocalStorage<string>('current-model', 'deepseek-r1:32b');
-    const [currentChatUid, setCurrentChatUid] = useLocalStorage<string>('current-chat', selectedChat?.uid ?? '');
     const abortControllerRef = useRef<AbortController | null>(null);
     const [chatSession, setChatSession] = useState<ChatSessionState>({
-        uid: currentChatUid,
+        uid: '',
         messages: selectedChat?.messages ?? initialMessages,
         currentResponse: '',
         isStreaming: false,
@@ -58,13 +55,6 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     const updateChatSession = (updates: Partial<ChatSessionState>) => {
         setChatSession((prev) => ({ ...prev, ...updates }));
     };
-
-    const updateChatSessionDarkMode = (darkMode: boolean) => {
-        setChatSession((prev) => ({
-            ...prev,
-            messages: [systemMessage(SYSTEM_PROMPT(darkMode)), ...prev.messages.slice(1)],
-        }));
-    }
 
     const appendChatSession = async (message: ChatMessage[] | ChatMessage, updateSystem?: ChatMessage): Promise<ChatMessage[]> => {
         if (!Array.isArray(message)) {
@@ -120,7 +110,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
         }));
     }
 
-    const handleChatStory = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => {
+    const handleChatStory = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => {
         updateChatSession({ isStreaming: true });
         const storyContent = `
         <story>
@@ -133,12 +123,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            currentModel,
+            model,
         );
         updateChatSession({ isStreaming: false });
     }
 
-    const handleRegenerate = async (messageUid?: string) => {
+    const handleRegenerate = async (messageUid?: string, model?: string) => {
         updateChatSession({ isStreaming: true });
         const newMessages = await sliceToChatSession(messageUid);
         await handleChat(newMessages, "重新產生對話時發生錯誤",
@@ -146,12 +136,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            currentModel
+            model
         );
         updateChatSession({ isStreaming: false });
     };
 
-    const handleChatTitleSingle = async (messages: ChatMessage[], setResponseCallback: (text: string) => void, appendResponseCallback: (text: string) => void) => {
+    const handleChatTitleSingle = async (messages: ChatMessage[], setResponseCallback: (text: string) => void, appendResponseCallback: (text: string) => void, model?: string) => {
         const conversationContent = `<query>${JSON.stringify(messages.filter(mes => mes.role === 'user').map(mes => mes.content))}</query>`;
         const genChatTitleMessages = [
             systemMessage(SYSTEM_PROMPT() + TITLE_GENERATOR_SYSTEM_PROMPT),
@@ -162,11 +152,11 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             appendResponseCallback,
             toast,
             null,
-            currentModel
+            model ?? "deepseek-r1:14b"
         );
     }
 
-    const handleChatTitle = async () => {
+    const handleChatTitle = async (model?: string) => {
         updateChatSession({ isTitleStreaming: true });
         const conversationContent = `<query>${JSON.stringify(chatSession.messages.filter(mes => mes.role === 'user').map(mes => mes.content))}</query>`;
         const genChatTitleMessages = [
@@ -178,12 +168,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('titleResponse', text),
             toast,
             null,
-            currentModel
+            model ?? "deepseek-r1:14b"
         );
         updateChatSession({ isTitleStreaming: false });
     }
 
-    const handleStorySuggestion = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => {
+    const handleStorySuggestion = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => {
         updateChatSession({ isStreaming: true });
         const storyContent = `<story>
         ${story}
@@ -195,12 +185,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            currentModel
+            model
         )
         updateChatSession({ isStreaming: false });
     }
 
-    const handleStorySceneSuggestion = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => {
+    const handleStorySceneSuggestion = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => {
         updateChatSession({ isStreaming: true });
         const storyContent = `
         <story>
@@ -213,12 +203,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            currentModel
+            model
         )
         updateChatSession({ isStreaming: false });
     }
 
-    const handleStoryContentModifyAndExtend = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => {
+    const handleStoryContentModifyAndExtend = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => {
         updateChatSession({ isStreaming: true });
         const storyContent = `
         <story>
@@ -231,12 +221,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            currentModel
+            model
         )
         updateChatSession({ isStreaming: false });
     }
 
-    const handleStoryContentExtend = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean) => {
+    const handleStoryContentExtend = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => {
         updateChatSession({ isStreaming: true });
         const storyContent = `
         <story>
@@ -249,7 +239,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
             (text: string) => appendChatResponse('currentResponse', text),
             toast,
             abortControllerRef,
-            currentModel
+            model
         )
         updateChatSession({ isStreaming: false });
     }
@@ -309,16 +299,12 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     // }, [chatSession.messages])
 
     return {
-        chatSession, setChatSession,
-        resetChatSession,
-        handleChatStory,
-        handleRegenerate,
+        chatSession, setChatSession, resetChatSession,
+        handleChatStory, handleRegenerate,
         handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend,
         handleStoryContentExtend,
-        updateChatSession, updateChatSessionDarkMode,
-        currentChatUid, setCurrentChatUid,
-        currentModel, setCurrentModel,
+        updateChatSession,
     };
 };
