@@ -23,6 +23,7 @@ export interface ChatSessionState {
 
 export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Chat | null, historyRef?: React.RefObject<any>, abortControllerRef?: React.RefObject<any>) => {
     const { toast } = useToast();
+    const [userScrolling, setUserScrolling] = useState(false);
     const [chatSession, setChatSession] = useState<ChatSessionState>({
         uid: '',
         messages: selectedChat?.messages ?? initialMessages,
@@ -244,15 +245,25 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     }
 
     const scrollToBottom = () => {
-        if (historyRef?.current) {
-            historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
-        }
+        if (!historyRef?.current || userScrolling) return;
+        historyRef.current.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
     };
 
     useEffect(() => {
-        if (chatSession.isStreaming) {
-            scrollToBottom();
-        }
+        const historyElement = historyRef?.current;
+        if (!historyElement) return;
+
+        const handleScroll = () => {
+            const isAtBottom = (historyRef.current.scrollHeight - historyRef.current.scrollTop) === historyRef.current.clientHeight;
+            setUserScrolling(!isAtBottom);
+        };
+
+        historyElement.addEventListener('scroll', handleScroll);
+        return () => historyElement.removeEventListener('scroll', handleScroll);
+    }, []);
+
+
+    useEffect(() => {
         if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'user') {
             // AI 回應完畢, 儲存 AI 的完整回應
             appendAssistantMessage();
@@ -261,6 +272,7 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
 
     useEffect(() => {
         if (!chatSession.currentResponse) return;
+        scrollToBottom();
 
         const parsed = parseResponse(chatSession.currentResponse, ["think"]);
         if (parsed) {
@@ -274,9 +286,6 @@ export const useChatSession = (initialMessages: ChatMessage[], selectedChat: Cha
     }, [chatSession.currentResponse])
 
     useEffect(() => {
-        if (!chatSession.isTitleStreaming) {
-            scrollToBottom();
-        }
         // 給予對話標題
         if (!chatSession.title && !chatSession.isTitleStreaming && chatSession.messages.at(-1)?.role === 'assistant') {
             handleChatTitle()
