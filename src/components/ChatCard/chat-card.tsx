@@ -65,7 +65,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({ }) => {
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
-                    className="fixed bottom-4 right-8 flex justify-center p-0 m-0 w-[46rem]"
+                    className="fixed bottom-4 right-8 flex justify-center p-0 m-0 w-[58rem]"
                 >
                     <Card className="w-full h-full bg-slate-50 shadow-lg">
                         <ChatCardHeader toggleCollapse={toggleCollapse} />

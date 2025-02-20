@@ -11,7 +11,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { MODEL_SELECTION } from "@/constant";
+import { DISPLAY_CURRENT_MODEL_LENGTH, MODEL_SELECTION } from "@/constant";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
@@ -34,7 +34,9 @@ export const OllamaModelSelect: React.FC<OllamaModelSelectProps> = ({ model, onC
                     variant="outline"
                     className="px-2 py-0 mr-2 h-6"
                 >
-                    {(value && MODEL_SELECTION.find((model) => model === value)) ?? "Select framework..."}
+                    {(value && MODEL_SELECTION.find((model) => model === value) &&
+                        `${value.slice(0, DISPLAY_CURRENT_MODEL_LENGTH)}${value.length > DISPLAY_CURRENT_MODEL_LENGTH ? '...' : ''}${value.length > DISPLAY_CURRENT_MODEL_LENGTH ? value.slice(-DISPLAY_CURRENT_MODEL_LENGTH) : ''}`
+                    ) ?? "Select framework..."}
                     <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>

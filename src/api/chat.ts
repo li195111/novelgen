@@ -84,6 +84,9 @@ export const handleOllamaChat = async (
     },
     body: JSON.stringify({
       model: model ?? "deepseek-r1:32b",
+      options: {
+        temperature: 0.7,
+      },
       messages: messages.map((mes) => ({
         role: mes.role,
         content: mes.content,

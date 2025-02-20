@@ -3,7 +3,7 @@ import { useLocalStorage } from "@/hooks/use-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Chat, systemMessage } from "@/models/chat";
 import { ChatCollection, RootChatState } from "@/models/chat-collection";
-import { SYSTEM_PROMPT } from "@/prompts";
+import { SYSTEM_ABLITERATE_PROMPT, SYSTEM_PROMPT } from "@/prompts";
 import { parseResponse } from "@/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
@@ -22,13 +22,14 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
     const [currentChatCollection, setCurrentChatCollection] = useState<ChatCollection | null>(null);
 
     const reTitleStreamingRef = useRef(false);
+    const SYS_PROMPT = currentModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT() : SYSTEM_PROMPT(isDarkModeChat);
 
     const {
         chatSession, setChatSession, updateChatSession, resetChatSession,
         handleChatStory, handleRegenerate, handleChatTitle, handleChatTitleSingle,
         handleStorySuggestion, handleStorySceneSuggestion,
         handleStoryContentModifyAndExtend, handleStoryContentExtend,
-    } = useChatSession([systemMessage(SYSTEM_PROMPT(isDarkModeChat))], currentModel, selectedChat, historyRef, abortControllerRef);
+    } = useChatSession([systemMessage(SYS_PROMPT)], currentModel, selectedChat, historyRef, abortControllerRef);
 
     const toggleIsDarkModeChat = () => {
         setIsDarkModeChat(!isDarkModeChat);
@@ -202,6 +203,11 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
                     updateChatState(selectedChat, { title: parsed.title });
                     reTitleStreamingRef.current = false;
                 }
+            }
+            else {
+                reTitleStreamingRef.current = false;
+                updateChatState(selectedChat, { title: selectedChat.messages.filter(mes => mes.role === 'user').at(-1)?.content.slice(0, 10) ?? 'Untitled' });
+                console.debug('Failed to re-title selected chat. ', titleResponse);
             }
         };
 

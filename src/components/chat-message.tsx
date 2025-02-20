@@ -1,11 +1,17 @@
 import MarkdownRenderer from "@/components/markdown-render";
-import { IChatMessage } from "@/models/chat";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useChatContext } from "@/context/chat-context";
+import { ChatMessage } from "@/models/chat";
 import { parseResponse } from "@/utils";
-import { RefreshCw } from "lucide-react";
+import { BrainIcon, RectangleEllipsisIcon, RefreshCw } from "lucide-react";
+import { v4 } from 'uuid';
 import ThinkAccordion from "./think-accordion";
 import { Button } from "./ui/button";
-import { useChatContext } from "@/context/chat-context";
-
 interface LineBlockProps {
     line: string;
 }
@@ -19,8 +25,31 @@ export const LineBlock: React.FC<LineBlockProps> = ({ line }) => {
     )
 }
 
+interface AllMessageAccordionProps {
+    messages: ChatMessage[];
+    className?: string;
+}
+
+export const AllMessageAccordion: React.FC<AllMessageAccordionProps> = ({ messages, className }) => {
+    return (
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="think" className="border-none">
+                <AccordionTrigger className="py-2 hover:no-underline">
+                    <RectangleEllipsisIcon />
+                </AccordionTrigger>
+                <AccordionContent>
+                    {messages.map((mes) => {
+                        if (mes.role === 'system') return <MarkdownRenderer className={["bg-slate-200 max-w-[80%] rounded-lg p-2", className].join(' ')} content={mes.content} key={v4()} />
+                        else return <MarkdownRenderer className={className} content={mes.content} key={v4()} />
+                    })}
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+    )
+}
+
 interface ChatMessageBlockProps {
-    message: IChatMessage;
+    message: ChatMessage;
     className?: string;
 }
 

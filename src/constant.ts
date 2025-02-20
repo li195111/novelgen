@@ -1,8 +1,14 @@
 export const MODEL_SELECTION = [
-  "deepseek-r1:7b",
-  "deepseek-r1:8b",
-  "deepseek-r1:14b",
+  "huihui_ai/deepseek-r1-abliterated:32b",
+  "huihui_ai/deepseek-r1-abliterated:14b",
+  "huihui_ai/deepseek-r1-abliterated:8b",
+  "huihui_ai/qwen2.5-1m-abliterated:14b",
+  "huihui_ai/qwen2.5-abliterate:32b",
+  "huihui_ai/qwen2.5-abliterate:14b",
   "deepseek-r1:32b",
+  "deepseek-r1:14b",
+  "deepseek-r1:8b",
+  "deepseek-r1:7b",
 ];
 
 export const MAX_TEAXTAREA_HEIGHT = 300;
@@ -10,6 +16,7 @@ export const DISPLAY_TITLE_LENGTH = 8;
 export const DISPLAY_STORY_COLLECTION_NAME_LENGTH = 5;
 export const DISPLAY_STORY_TITLE_LENGTH = 10;
 export const DISPLAY_CHAT_SESSION_TITLE_LENGTH = 10;
+export const DISPLAY_CURRENT_MODEL_LENGTH = 10;
 
 export const BODY_PARTS = [
   "手",
