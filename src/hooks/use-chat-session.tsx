@@ -2,7 +2,7 @@ import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
-import { STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SCENE_GENERATEOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_ABLITERATE_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/prompts";
+import { BRAINSTORM_SYSTEM_PROMPT, STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_ABLITERATE_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/prompts";
 import { parseResponse } from "@/utils";
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
@@ -117,7 +117,7 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
         <story>
         ${story}
         </story>`;
-        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT() : SYSTEM_PROMPT(darkMode);
+        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT(darkMode) : SYSTEM_PROMPT(darkMode);
         console.debug('Use Model: ', useModel, 'Contains Abliterate: ', useModel.includes('abliterate'));
         const sysMessage = systemMessage(SYS_PROMPT + (story ? storyContent : ""));
         const newMessages = await appendChatSession(userMessage(values.chatMessage), sysMessage);
@@ -191,7 +191,7 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
         const storyContent = `<story>
         ${story}
         </story>`;
-        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT() : SYSTEM_PROMPT(darkMode);
+        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT(darkMode) : SYSTEM_PROMPT(darkMode);
         const genStorySuggestionMessages = systemMessage(STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT(SYS_PROMPT, darkMode) + storyContent);
         const newMessages = await appendChatSession(userMessage(`提供${values.chatMessage}小說故事建議`), genStorySuggestionMessages)
         await handleChat(newMessages, "AI 產生建議時發生錯誤",
@@ -207,12 +207,9 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
     const handleStorySceneSuggestion = async (values: z.infer<typeof StoryChatSchema>, story?: string, darkMode?: boolean, model?: string) => {
         const useModel = model ?? currentModel;
         updateChatSession({ isStreaming: true });
-        const storyContent = `
-        <story>
-        ${story}
-        </story>`;
-        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT() : SYSTEM_PROMPT(darkMode);
-        const genStorySuggestionMessages = systemMessage(STORY_SCENE_GENERATEOR_SYSTEM_PROMPT(SYS_PROMPT, darkMode) + storyContent);
+        // const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT(darkMode) : SYSTEM_PROMPT(darkMode);
+        // const genStorySuggestionMessages = systemMessage(STORY_SCENE_GENERATEOR_SYSTEM_PROMPT(SYS_PROMPT, darkMode) + storyContent);
+        const genStorySuggestionMessages = systemMessage(BRAINSTORM_SYSTEM_PROMPT(`${story}`, darkMode));
         const newMessages = await appendChatSession(userMessage(`提供可能發生的${values.chatMessage}${darkMode ? '成人色情內容' : ''}場景`), genStorySuggestionMessages)
         await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
             (text: string) => updateChatSession({ currentResponse: text }),
@@ -231,7 +228,7 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
         <story>
         ${story}
         </story>`;
-        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT() : SYSTEM_PROMPT(darkMode);
+        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT(darkMode) : SYSTEM_PROMPT(darkMode);
         const sysMessages = systemMessage(STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT(SYS_PROMPT, darkMode) + storyContent);
         const newMessages = await appendChatSession(userMessage(`改寫並增加後續劇情: ${values.chatMessage}`), sysMessages)
         await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
@@ -251,7 +248,7 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
         <story>
         ${story}
         </story>`;
-        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT() : SYSTEM_PROMPT(darkMode);
+        const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT(darkMode) : SYSTEM_PROMPT(darkMode);
         const sysMessages = systemMessage(STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT(SYS_PROMPT, darkMode) + storyContent);
         const newMessages = await appendChatSession(userMessage(`改寫並增加後續劇情: ${values.chatMessage}`), sysMessages)
         await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
@@ -274,8 +271,9 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
         if (!historyElement) return;
 
         const handleScroll = () => {
-            const isAtBottom = (historyRef.current.scrollHeight - historyRef.current.scrollTop) === historyRef.current.clientHeight;
-            setUserScrolling(!isAtBottom);
+            const SCROLL_THRESHOLD = 25; // 50px threshold
+            const isNearBottom = (historyRef.current.scrollHeight - historyRef.current.scrollTop - historyRef.current.clientHeight) <= SCROLL_THRESHOLD;
+            setUserScrolling(!isNearBottom);
         };
 
         historyElement.addEventListener('scroll', handleScroll);
@@ -287,6 +285,10 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
         if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'user') {
             // AI 回應完畢, 儲存 AI 的完整回應
             appendAssistantMessage();
+        }
+        else if (!chatSession.isStreaming && chatSession.messages.at(-1)?.role === 'assistant') {
+            scrollToBottom();
+            setUserScrolling(true);
         }
     }, [chatSession.messages, chatSession.isStreaming]);
 

@@ -409,7 +409,19 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                             </FormItem>
                         )}
                     />
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-between">
+                        <Button type="button" onClick={() => {
+                            const { uid, ...story } = storyForm.getValues();
+                            const storyCharacters = story.characters.map(({ uid, ...character }) => 
+                                Object.fromEntries(Object.entries({ ...character }).filter(([_, value]) => value !== ''))
+                            );
+                            const filteredStory = Object.fromEntries(
+                                Object.entries({ ...story, characters: storyCharacters })
+                                    .filter(([_, value]) => value !== '')
+                            );
+                            const storyString = JSON.stringify(filteredStory);
+                            console.log(storyString);
+                        }}>印出</Button>
                         <Button type="submit">儲存</Button>
                     </div>
                 </form>

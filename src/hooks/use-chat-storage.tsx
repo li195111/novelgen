@@ -22,7 +22,7 @@ export const useChatStorage = (historyRef?: React.RefObject<any>, abortControlle
     const [currentChatCollection, setCurrentChatCollection] = useState<ChatCollection | null>(null);
 
     const reTitleStreamingRef = useRef(false);
-    const SYS_PROMPT = currentModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT() : SYSTEM_PROMPT(isDarkModeChat);
+    const SYS_PROMPT = currentModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT(isDarkModeChat) : SYSTEM_PROMPT(isDarkModeChat);
 
     const {
         chatSession, setChatSession, updateChatSession, resetChatSession,

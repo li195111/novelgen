@@ -33,6 +33,7 @@ export const OllamaModelSelect: React.FC<OllamaModelSelectProps> = ({ model, onC
                 <Button
                     variant="outline"
                     className="px-2 py-0 mr-2 h-6"
+                    title={value}
                 >
                     {(value && MODEL_SELECTION.find((model) => model === value) &&
                         `${value.slice(0, DISPLAY_CURRENT_MODEL_LENGTH)}${value.length > DISPLAY_CURRENT_MODEL_LENGTH ? '...' : ''}${value.length > DISPLAY_CURRENT_MODEL_LENGTH ? value.slice(-DISPLAY_CURRENT_MODEL_LENGTH) : ''}`

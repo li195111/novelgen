@@ -74,14 +74,18 @@ export const StoryChatForm: React.FC<StoryChatFormProps> = ({ submitMap }) => {
     }, [storyForm.watch('chatMessage')]);
 
     useEffect(() => {
-        setStoryValue(`<title>${selectedStory?.title}</title>
-            <tags>${JSON.stringify(selectedStory?.tags)}</tags>
-            <characters>${JSON.stringify(selectedStory?.characters.map(({ uid, ...rest }) => (
-            `<info>\n- 名稱：${rest.name}\n- 身高: ${rest.height}公分\n- 體重: ${rest.weight}公斤\n- 身材: ${rest.bodyDesc}\n- 職業: ${rest.job}\n- 個性: ${rest.personality}\n- 日常: ${rest.otherDesc}\n- 經歷: ${rest.experience}\n</info>`)), null)}
-            </characters>
-            <scene>${JSON.stringify(selectedStory?.scenes)}</scene>
-            <outline>${selectedStory?.outline}</outline>
-            <currentScene>${selectedStory?.currentScene}</currentScene>`)
+        if (selectedStory) {
+            const { uid, createTimestamp, lastModifiedTimestamp, ...story } = selectedStory;
+            const storyCharacters = story.characters.map(({ uid, ...character }) =>
+                Object.fromEntries(Object.entries({ ...character }).filter(([_, value]) => value !== ''))
+            );
+            const filteredStory = Object.fromEntries(
+                Object.entries({ ...story, characters: storyCharacters })
+                    .filter(([_, value]) => value !== '')
+            );
+            const storyString = JSON.stringify(filteredStory);
+            setStoryValue(storyString);
+        }
     }, [selectedStory]);
 
     return (

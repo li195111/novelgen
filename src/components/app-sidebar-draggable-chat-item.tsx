@@ -47,7 +47,9 @@ export const DraggableChatItem: FC<DraggableChatItemProps> = ({ selectedChat, ch
                         <SidebarMenuButton asChild className="flex hover:bg-slate-300 focus:bg-slate-300">
                             {/* <Link to={`/chat/${chat.uid}`}> */}
                             <Button variant='link' className="flex items-center justify-start min-w-max"
-                                onClick={() => onSelect(chat)}>
+                                onClick={() => onSelect(chat)}
+                                title={chat.title}
+                            >
                                 {chat.title?.slice(0, DISPLAY_TITLE_LENGTH) ?? '無標題'}
                                 {(chat.title && chat.title?.length > DISPLAY_TITLE_LENGTH) && '...'}
                             </Button>

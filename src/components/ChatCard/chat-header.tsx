@@ -30,19 +30,19 @@ export const ChatCardHeader: React.FC<ChatCardHeaderProps> = ({
             <div className="flex w-full justify-start space-x-8 pl-4">
                 <div className="flex flex-row space-x-1 items-center justify-self-start min-w-max">
                     {currentStoryCollectionId === "unorganized" && <span className="text-xs">未分類</span>}
-                    {currentStoryCollectionId !== "unorganized" && <span className="text-xs">{
+                    {currentStoryCollectionId !== "unorganized" && <span className="text-xs" title={currentStoryCollection?.name}>{
                         currentStoryCollection?.name.slice(0, DISPLAY_STORY_COLLECTION_NAME_LENGTH)
                     }{(
                         currentStoryCollection?.name && currentStoryCollection?.name.length > DISPLAY_STORY_COLLECTION_NAME_LENGTH) ? '...' : ''
                         }</span>}
                     <span>{`/`}</span>
-                    {selectedStory && <span className="text-xs">{
+                    {selectedStory && <span className="text-xs" title={selectedStory.title}>{
                         selectedStory.title.slice(0, DISPLAY_STORY_TITLE_LENGTH)
                     }{selectedStory.title.length > DISPLAY_STORY_TITLE_LENGTH ? '...' : ''
                         }</span>}
                 </div>
                 <div className="flex flex-row space-x-1 items-center">
-                    {chatSession.title && <span className="text-xs">{
+                    {chatSession.title && <span className="text-xs" title={chatSession.title}>{
                         chatSession.title.slice(0, DISPLAY_CHAT_SESSION_TITLE_LENGTH)
                     }{chatSession.title.length > DISPLAY_CHAT_SESSION_TITLE_LENGTH ? '...' : ''
                         }</span>}

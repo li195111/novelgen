@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useStoryStorage } from "@/hooks/use-story-storage";
 import { Character } from "@/models/character";
+import { CHARACTER_INFO_PROMPT } from "@/prompts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -102,7 +103,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
     }, [storyState])
 
     return (
-        <div>
+        <div className="flex flex-col w-full">
             <div className="flex items-center space-x-2">
                 <Label className="min-w-max">角色清單</Label>
                 <div className="flex items-center space-x-2 max-w-[24rem] overflow-x-auto">
@@ -125,7 +126,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                         name="name"
                         render={({ field }) => (
                             <FormItem className="flex items-center space-x-2">
-                                <FormLabel className="min-w-max">角色名稱</FormLabel>
+                                <FormLabel className="min-w-max"><span className="text-red-600">*</span>角色名稱</FormLabel>
                                 <FormControl>
                                     <Input placeholder="輸入角色名稱..." {...field} />
                                 </FormControl>
@@ -175,7 +176,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                                 name="age"
                                 render={({ field }) => (
                                     <FormItem className="flex items-center space-x-2">
-                                        <FormLabel className="min-w-max">年齡 (Optional)</FormLabel>
+                                        <FormLabel className="min-w-max">年齡</FormLabel>
                                         <FormControl>
                                             <Input placeholder="輸入年齡..." {...field} />
                                         </FormControl>
@@ -191,7 +192,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                                 name="height"
                                 render={({ field }) => (
                                     <FormItem className="flex items-center space-x-2">
-                                        <FormLabel className="min-w-max">身高 (Optional)</FormLabel>
+                                        <FormLabel className="min-w-max">身高</FormLabel>
                                         <FormControl>
                                             <Input placeholder="輸入身高..." {...field} />
                                         </FormControl>
@@ -205,7 +206,7 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                                 name="weight"
                                 render={({ field }) => (
                                     <FormItem className="flex items-center space-x-2">
-                                        <FormLabel className="min-w-max">體重 (Optional)</FormLabel>
+                                        <FormLabel className="min-w-max">體重</FormLabel>
                                         <FormControl>
                                             <Input placeholder="輸入體重..." {...field} />
                                         </FormControl>
@@ -218,23 +219,10 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                     </div>
                     <FormField
                         control={characterForm.control}
-                        name="bodyDesc"
-                        render={({ field }) => (
-                            <FormItem className="flex items-center space-x-2">
-                                <FormLabel className="min-w-max">身材 (Optional)</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="描述身材 e.g. 三圍38E 42 88, 壯碩、腹肌..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={characterForm.control}
                         name="job"
                         render={({ field }) => (
                             <FormItem className="flex items-center space-x-2">
-                                <FormLabel className="min-w-max">職業 (Optional)</FormLabel>
+                                <FormLabel className="min-w-max">職業</FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder="描述職業 e.g.網拍模特兒、YouTuber、健身教練 ..."
@@ -247,14 +235,28 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                     />
                     <FormField
                         control={characterForm.control}
+                        name="bodyDesc"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col items-start">
+                                <FormLabel className="min-w-max">外觀描述</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="描述身材 e.g. 三圍38E 42 88, 壯碩、腹肌..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={characterForm.control}
                         name="personality"
                         render={({ field }) => (
-                            <FormItem className="flex items-center space-x-2">
-                                <FormLabel className="min-w-max">個性 (Optional)</FormLabel>
+                            <FormItem className="flex flex-col items-start">
+                                <FormLabel className="min-w-max">個性</FormLabel>
                                 <FormControl>
-                                    <Input
+                                    <Textarea
                                         placeholder="描述個性 e.g.可愛、害羞、倔強 ..."
                                         {...field}
+                                        className=""
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -265,10 +267,10 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                         control={characterForm.control}
                         name="otherDesc"
                         render={({ field }) => (
-                            <FormItem className="flex items-center space-x-2">
-                                <FormLabel className="min-w-max">其他描述 (Optional)</FormLabel>
+                            <FormItem className="flex flex-col items-start">
+                                <FormLabel className="min-w-max">其他描述</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="與家人同住、一個弟弟 ..." {...field} />
+                                    <Textarea placeholder="與家人同住、一個弟弟 ..." {...field} className="min-h-32" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -278,31 +280,44 @@ export const CharacterForm: React.FC<CharacterFormProps> = ({ defaultCharacter, 
                         control={characterForm.control}
                         name="experience"
                         render={({ field }) => (
-                            <FormItem className="flex items-center space-x-2">
-                                <FormLabel className="min-w-max">經歷 (Optional)</FormLabel>
+                            <FormItem className="flex flex-col items-start">
+                                <FormLabel className="min-w-[7rem]">經歷</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="拍過主題影片、尾牙表演..." {...field} />
+                                    <Textarea placeholder="拍過主題影片、尾牙表演..." {...field} className="min-h-32" />
                                 </FormControl>
                             </FormItem>
                         )}
                     />
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            className="bg-red-600"
-                            onClick={() => {
-                                if (handleDelete) {
-                                    handleDelete();
-                                }
-                            }}
-                        >
-                            刪除
-                        </Button>
-                        <Button type="button" className="bg-green-600" onClick={() => {
-                            handleSubmit(characterForm.getValues());
-                        }}>
-                            {defaultCharacter ? "修改" : "新增"}
-                        </Button>
+                    <DialogFooter className="flex justify-between">
+                        <div className="flex w-full">
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    const { uid, currentStatusDesc, currentScene, ...character } = characterForm.getValues();
+                                    console.log(JSON.stringify(character));
+                                }}
+                            >
+                                印出
+                            </Button>
+                        </div>
+                        <div className="flex min-w-max space-x-2">
+                            <Button
+                                type="button"
+                                className="bg-red-600 opacity-80"
+                                onClick={() => {
+                                    if (handleDelete) {
+                                        handleDelete();
+                                    }
+                                }}
+                            >
+                                刪除
+                            </Button>
+                            <Button type="button" onClick={() => {
+                                handleSubmit(characterForm.getValues());
+                            }}>
+                                {defaultCharacter ? "修改" : "新增"}
+                            </Button>
+                        </div>
                     </DialogFooter>
                 </form>
             </Form>
