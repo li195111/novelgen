@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Character } from "@/models/character";
 import { Story } from "@/models/story";
+import { DARK_AUDIT_STORY_SYSTEM_PROMPT } from "@/prompts";
 import { dynamicHeight } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircleIcon, X } from "lucide-react";
@@ -412,7 +413,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                     <div className="flex items-center justify-between">
                         <Button type="button" onClick={() => {
                             const { uid, ...story } = storyForm.getValues();
-                            const storyCharacters = story.characters.map(({ uid, ...character }) => 
+                            const storyCharacters = story.characters.map(({ uid, ...character }) =>
                                 Object.fromEntries(Object.entries({ ...character }).filter(([_, value]) => value !== ''))
                             );
                             const filteredStory = Object.fromEntries(
@@ -420,7 +421,11 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                                     .filter(([_, value]) => value !== '')
                             );
                             const storyString = JSON.stringify(filteredStory);
+
+
+                            const storyPrompt = DARK_AUDIT_STORY_SYSTEM_PROMPT(story);
                             console.log(storyString);
+                            console.log(storyPrompt);
                         }}>印出</Button>
                         <Button type="submit">儲存</Button>
                     </div>

@@ -2,7 +2,7 @@ import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
-import { BRAINSTORM_SYSTEM_PROMPT, STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_ABLITERATE_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/prompts";
+import { BRAINSTORM_SYSTEM_PROMPT, DARK_AUDIT_STORY_SYSTEM_PROMPT, NORMAL_AUDIT_STORY_SYSTEM_PROMPT, STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_ABLITERATE_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/prompts";
 import { parseResponse } from "@/utils";
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
@@ -209,7 +209,7 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
         updateChatSession({ isStreaming: true });
         // const SYS_PROMPT = useModel.includes('abliterate') ? SYSTEM_ABLITERATE_PROMPT(darkMode) : SYSTEM_PROMPT(darkMode);
         // const genStorySuggestionMessages = systemMessage(STORY_SCENE_GENERATEOR_SYSTEM_PROMPT(SYS_PROMPT, darkMode) + storyContent);
-        const genStorySuggestionMessages = systemMessage(BRAINSTORM_SYSTEM_PROMPT(`${story}`, darkMode));
+        const genStorySuggestionMessages = systemMessage(darkMode ? DARK_AUDIT_STORY_SYSTEM_PROMPT(story, darkMode) : NORMAL_AUDIT_STORY_SYSTEM_PROMPT(story, darkMode));
         const newMessages = await appendChatSession(userMessage(`提供可能發生的${values.chatMessage}${darkMode ? '成人色情內容' : ''}場景`), genStorySuggestionMessages)
         await handleChat(newMessages, "AI 產生場景建議時發生錯誤",
             (text: string) => updateChatSession({ currentResponse: text }),
