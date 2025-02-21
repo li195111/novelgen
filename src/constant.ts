@@ -17,6 +17,7 @@ export const DISPLAY_STORY_COLLECTION_NAME_LENGTH = 5;
 export const DISPLAY_STORY_TITLE_LENGTH = 10;
 export const DISPLAY_CHAT_SESSION_TITLE_LENGTH = 10;
 export const DISPLAY_CURRENT_MODEL_LENGTH = 10;
+export const MAX_RESPONSE_LENGTH = 20000;
 
 export const BODY_PARTS = [
   "手",

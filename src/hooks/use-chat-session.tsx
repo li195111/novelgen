@@ -1,5 +1,6 @@
 import { handleChat } from "@/api/chat";
 import { StoryChatSchema } from "@/components/story-chat-form";
+import { MAX_RESPONSE_LENGTH } from "@/constant";
 import { useToast } from "@/hooks/use-toast";
 import { assistantMessage, Chat, ChatMessage, systemMessage, userMessage } from "@/models/chat";
 import { BRAINSTORM_SYSTEM_PROMPT, DARK_AUDIT_STORY_SYSTEM_PROMPT, NORMAL_AUDIT_STORY_SYSTEM_PROMPT, STORY_CONTENT_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_CONTENT_MODIFY_AND_EXTEND_GENERATOR_SYSTEM_PROMPT, STORY_SUGGESTION_GENERATOR_SYSTEM_PROMPT, SYSTEM_ABLITERATE_PROMPT, SYSTEM_PROMPT, TITLE_GENERATOR_SYSTEM_PROMPT } from "@/prompts";
@@ -303,6 +304,18 @@ export const useChatSession = (initialMessages: ChatMessage[], currentModel: str
                 responseResult: parsed.response,
                 isThinking: parsed.isThinking
             });
+        }
+
+        if (chatSession.currentResponse.length > MAX_RESPONSE_LENGTH) {
+            if (abortControllerRef?.current) {
+                abortControllerRef.current.abort();
+                updateChatSession({ isStreaming: false });
+                toast({
+                    title: "回應已中止",
+                    description: "回應長度超過限制",
+                    variant: "destructive",
+                });
+            }
         }
 
     }, [chatSession.currentResponse])
