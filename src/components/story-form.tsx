@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useChatContext } from "@/context/chat-context";
 import { useToast } from "@/hooks/use-toast";
 import { Character } from "@/models/character";
 import { Story } from "@/models/story";
@@ -42,6 +43,7 @@ interface StoryFormProps {
 
 export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit }) => {
     const { toast } = useToast();
+    const { isDarkModeChat } = useChatContext();
 
     const [tagList, setTagList] = useState<string[]>(defaultStory?.tags ?? []);
     const [characterList, setCharacterList] = useState<Character[]>(defaultStory?.characters ?? []);
@@ -411,7 +413,7 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                         )}
                     />
                     <div className="flex items-center justify-between">
-                        <Button type="button" onClick={() => {
+                        <Button type="button" onClick={async () => {
                             const { uid, ...story } = storyForm.getValues();
                             const storyCharacters = story.characters.map(({ uid, ...character }) =>
                                 Object.fromEntries(Object.entries({ ...character }).filter(([_, value]) => value !== ''))
@@ -420,11 +422,12 @@ export const StoryForm: React.FC<StoryFormProps> = ({ defaultStory, handleSubmit
                                 Object.entries({ ...story, characters: storyCharacters })
                                     .filter(([_, value]) => value !== '')
                             );
-                            const storyString = JSON.stringify(filteredStory);
-
-
-                            const storyPrompt = DARK_AUDIT_STORY_SYSTEM_PROMPT(story);
-                            console.log(storyString);
+                            const storyPrompt = DARK_AUDIT_STORY_SYSTEM_PROMPT(story, isDarkModeChat);
+                            await navigator.clipboard.writeText(storyPrompt);
+                            toast({
+                                title:"已複製至剪貼簿",
+                                description: "已複製故事系統提示至剪貼簿",
+                            })
                             console.log(storyPrompt);
                         }}>印出</Button>
                         <Button type="submit">儲存</Button>
